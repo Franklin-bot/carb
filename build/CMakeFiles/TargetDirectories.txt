@@ -1,0 +1,4 @@
+/Users/FranklinZhao/carb/build/CMakeFiles/COMMON_lib.dir
+/Users/FranklinZhao/carb/build/CMakeFiles/scout_exe.dir
+/Users/FranklinZhao/carb/build/CMakeFiles/edit_cache.dir
+/Users/FranklinZhao/carb/build/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/Users/FranklinZhao/carb/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -I/usr/local/Cellar/boost/1.86.0_2/include -std=c++20 -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -mmacosx-version-min=14.3 -o CMakeFiles/COMMON_lib.dir/src/common/socket.cpp.o -c /Users/FranklinZhao/carb/src/common/socket.cpp",
+  "file": "/Users/FranklinZhao/carb/src/common/socket.cpp",
+  "output": "CMakeFiles/COMMON_lib.dir/src/common/socket.cpp.o"
+},
+{
+  "directory": "/Users/FranklinZhao/carb/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -I/usr/local/Cellar/boost/1.86.0_2/include -std=c++20 -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -mmacosx-version-min=14.3 -o CMakeFiles/scout_exe.dir/src/scout/main.cpp.o -c /Users/FranklinZhao/carb/src/scout/main.cpp",
+  "file": "/Users/FranklinZhao/carb/src/scout/main.cpp",
+  "output": "CMakeFiles/scout_exe.dir/src/scout/main.cpp.o"
+}
+]
