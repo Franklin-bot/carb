@@ -13,13 +13,13 @@ add_library(COMMON_lib STATIC
 
 # Detect the operating system
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    set(BOOST_PATH "/usr/include/boost")
+    set(LIBS_PATH "/usr/include/boost" "/usr/include/openssl")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    set(BOOST_PATH "/usr/local/Cellar/boost/1.86.0_2/include")
+    set(LIBS_PATH "/usr/local/Cellar/boost/1.86.0_2/include")
 else()
     message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}")
 endif()
-include_directories(${BOOST_PATH})
+include_directories(${LIBS_PATH})
 target_link_libraries(COMMON_lib PRIVATE ${Boost_LIBRARIES})
 
 
