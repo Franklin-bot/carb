@@ -9,14 +9,15 @@ std::pair<uint64_t, uint64_t> PriceBuffer::histNormalDist() {
     uint64_t sum = 0;
     uint64_t sum_squared_diff = 0;
 
-    for (uint64_t value : prices) {
-        sum += value;
+
+    for (auto x = prices.begin(); x != prices.end() - 1; ++x) {
+        sum += *x;
     }
-    for (uint64_t value : prices) {
-        sum_squared_diff += std::pow(value - mean, 2);
+    for (auto x = prices.begin(); x != prices.end() - 1; ++x) {
+        sum_squared_diff += std::pow(*x - mean, 2);
     }
-    mean = sum / prices.size();
-    std = std::sqrt(sum_squared_diff / (prices.size() - 1));
+    mean = sum / (prices.size() - 1);
+    std = std::sqrt(sum_squared_diff / (prices.size() - 2));
 
     return std::make_pair(mean, std);
 }
@@ -56,8 +57,6 @@ std::pair<uint64_t, uint64_t> PriceBuffer::confWindow(double z_score) {
 
     return std::make_pair(low, high);
 }
-
-
 
 // Determines if a sample is a peak, valley, or none within the given interval
 int8_t PriceBuffer::isPeakOrValley(uint64_t sample, std::pair<uint64_t, uint64_t> interval) {
