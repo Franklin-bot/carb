@@ -31,6 +31,6 @@ public:
     void addPrice(std::pair<uint64_t, uint64_t> p);
     std::pair<uint64_t, uint64_t> lastPrice();
 
-    int8_t isPeakOrValley(uint64_t sample, std::pair<uint64_t, uint64_t> interval);
+    int8_t isLastPeakOrValley();
 
 };

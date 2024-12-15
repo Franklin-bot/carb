@@ -59,7 +59,11 @@ std::pair<uint64_t, uint64_t> PriceBuffer::confWindow(double z_score) {
 }
 
 // Determines if a sample is a peak, valley, or none within the given interval
-int8_t PriceBuffer::isPeakOrValley(uint64_t sample, std::pair<uint64_t, uint64_t> interval) {
+int8_t PriceBuffer::isLastPeakOrValley() {
+    std::pair<uint64_t, uint64_t> interval = confWindow(1);
+    std::pair<uint64_t, uint64_t> lastPricePair = lastPrice();
+    uint64_t sample = lastPricePair.first;
+
     if (sample < interval.first) {
         return -1;  // Valley
     } else if (sample > interval.second) {
