@@ -11,7 +11,15 @@ add_library(COMMON_lib STATIC
     src/common/socket.cpp
 )
 
-include_directories(/usr/local/Cellar/boost/1.86.0_2/include)
+# Detect the operating system
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    set(BOOST_PATH "/usr/include/boost")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    set(BOOST_PATH "/usr/local/Cellar/boost/1.86.0_2/include")
+else()
+    message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}")
+endif()
+include_directories(${BOOST_PATH})
 target_link_libraries(COMMON_lib PRIVATE ${Boost_LIBRARIES})
 
 
