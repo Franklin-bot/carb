@@ -1,18 +1,23 @@
 #pragma once
 
-#include "listener.hpp"
 #include <string>
 #include <vector>
+#include "../common/socket.hpp"
 
 class Scout {
 public:
 
-    Scout() = delete;
-    explicit Scout(const std::vector<std::string>& targets);
+    Scout(){};
+    Scout(const std::vector<std::string>& targets, const std::vector<std::string>& exchanges);
+
+    std::vector<int> calculate_discrepancies();
 
 private:
 
-    std::vector<Listener> listeners;
+    std::vector<Socket> connections;
+
+    
+
 
 
 

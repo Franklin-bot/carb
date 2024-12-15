@@ -2128,8 +2128,11 @@ CMakeFiles/COMMON_lib.dir/src/common/socket.cpp.o: /Users/FranklinZhao/carb/src/
   /usr/local/Cellar/boost/1.86.0_2/include/boost/beast/websocket/impl/ping.hpp \
   /usr/local/Cellar/boost/1.86.0_2/include/boost/beast/websocket/impl/read.hpp \
   /usr/local/Cellar/boost/1.86.0_2/include/boost/beast/websocket/impl/stream.hpp \
-  /usr/local/Cellar/boost/1.86.0_2/include/boost/beast/websocket/impl/write.hpp
+  /usr/local/Cellar/boost/1.86.0_2/include/boost/beast/websocket/impl/write.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk/usr/include/c++/v1/iostream
 
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk/usr/include/c++/v1/iostream:
 
 /usr/local/Cellar/boost/1.86.0_2/include/boost/beast/websocket/impl/read.hpp:
 
