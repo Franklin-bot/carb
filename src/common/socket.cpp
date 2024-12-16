@@ -1,40 +1,47 @@
 #include "socket.hpp"
 
-namespace net = boost::asio;
-namespace beast = boost::beast;
-using namespace boost::beast;
-using namespace boost::beast::websocket;
-using tcp = net::ip::tcp; 
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
+namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
+                                        //
+Socket::Socket(const std::string& h, const int p)
+    : host(h), port(std::to_string(p)){
 
-Socket::Socket(const std::string_view host, const int port)
-    : host(host), port(port){
+        this->buffer = std::make_unique<beast::flat_buffer>();
+        this->ioc = std::make_unique<net::io_context>();
+        this->ctx = std::make_unique<ssl::context>(ssl::context::tlsv12_client);
+        tcp::resolver resolver{*this->ioc};
+        this->ws = std::make_unique<websocket::stream<ssl::stream<tcp::socket>>>(*this->ioc, *this->ctx);
+        auto const results = resolver.resolve(this->host, this->port);
+        auto ep = net::connect(beast::get_lowest_layer(*this->ws), results);
 
-    // initialize socket resources
-    std::cout << "Initializing Socket to " << this->host << "\n";
-    this->buffer = std::make_unique<boost::beast::flat_buffer>();
-    this->ioc = std::make_unique<net::io_context>();
-    this->ws = std::make_unique<stream<tcp::socket>>(*this->ioc);
-    net::ip::tcp::resolver resolver(*this->ioc);
+        if(!SSL_set_tlsext_host_name(this->ws->next_layer().native_handle(), this->host.c_str()))
+            throw beast::system_error(
+                beast::error_code(
+                    static_cast<int>(::ERR_get_error()),
+                    net::error::get_ssl_category()),
+                "Failed to set SNI Hostname");
 
-    try {
-        // calculate endpoint
-        auto const results = resolver.resolve(this->host, std::to_string(port));
-        std::cout << "Found Endpoint\n";
+        this->host += ':' + this->port; 
+        this->ws->next_layer().handshake(ssl::stream_base::client);
 
-        // establish connection
-        auto ep = net::connect(ws->next_layer(), results);
-        this->host += ':' + std::to_string(ep.port());
+        this->ws->set_option(websocket::stream_base::decorator(
+            [](websocket::request_type& req)
+            {
+                req.set(http::field::user_agent,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " websocket-client-coro");
+            }));
+
         this->ws->handshake(this->host, "/");
-        std::cout << "established handshake\n";
-
-    // temporary exception catch, eventually exceptions will be handled by the object the socket belongs to
-    } catch (std::exception& e) {
-        std::cout << e.what() << "\n";
-    }
+        std::cout << "handshake complete!\n";
 
 }
 
-void Socket::listen(std::vector<int>& history, const int& index){
+void Socket::run(std::vector<int>& history, const int& index){
 
     std::cout << "Listening!\n";
     std::string text = "ping";

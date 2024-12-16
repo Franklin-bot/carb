@@ -8,9 +8,10 @@
 
 int main(){
 
-    Socket* test = new Socket(std::string("echo.websocket.org"), 8057);
+    Socket* test = new Socket("echo.websocket.org", 443);
 
     return 0;
 
 
 }
+
