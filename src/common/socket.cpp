@@ -8,13 +8,28 @@ namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
                                         //
 Socket::Socket(const std::string_view host, const int port, const std::string_view path)
-    : host(host), port(std::to_string(port)){
+    : host(host), port(std::to_string(port)), path(path){
 
         this->buffer = std::make_unique<beast::flat_buffer>();
         this->ioc = std::make_unique<net::io_context>();
         this->ctx = std::make_unique<ssl::context>(ssl::context::tlsv12_client);
-        tcp::resolver resolver{*this->ioc};
         this->ws = std::make_unique<websocket::stream<ssl::stream<tcp::socket>>>(*this->ioc, *this->ctx);
+
+
+}
+
+void Socket::run(std::vector<int>& history, const int& index){
+
+}
+
+void Socket::test() {
+        this->ws->write(net::buffer("HELLO!"));
+        this->ws->read(*this->buffer);
+        std::cout << beast::make_printable(this->buffer->data()) << std::endl;
+}
+
+void Socket::connect() {
+        tcp::resolver resolver{*this->ioc};
         auto const results = resolver.resolve(this->host, this->port);
         auto ep = net::connect(beast::get_lowest_layer(*this->ws), results);
 
@@ -38,17 +53,14 @@ Socket::Socket(const std::string_view host, const int port, const std::string_vi
 
         this->ws->handshake(this->host, path);
         std::cout << "handshake complete, connected!\n";
-
-
-        this->ws->write(net::buffer("HELLO!"));
-
-        this->ws->read(*this->buffer);
-
-        this->ws->close(websocket::close_code::normal);
-
-        std::cout << beast::make_printable(this->buffer->data()) << std::endl;
 }
 
-void Socket::run(std::vector<int>& history, const int& index){
+void Socket::close() {
+    if(this->ws->is_open()) {
+        this->ws->close(websocket::close_code::normal);
+    }
+}
 
+Socket::~Socket() {
+    close();
 }

@@ -14,13 +14,9 @@ Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& products, std::vector
     channels(channels)
 {
         
-    this->ws->write(net::buffer("HELLO!"));
-
-    this->ws->read(*this->buffer);
-
-    this->ws->close(websocket::close_code::normal);
-
-    std::cout << beast::make_printable(this->buffer->data()) << std::endl;
+    connect();
+    test();
+    close();
 
 
 
