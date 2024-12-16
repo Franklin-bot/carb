@@ -1,6 +1,8 @@
 [requires]
 boost/1.86.0
 openssl/3.3.2
+rapidjson/cci.20230929
+
 [generators]
 CMakeDeps
 CMakeToolchain

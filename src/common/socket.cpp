@@ -7,8 +7,8 @@ namespace net = boost::asio;            // from <boost/asio.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
                                         //
-Socket::Socket(const std::string& h, const int p)
-    : host(h), port(std::to_string(p)){
+Socket::Socket(const std::string_view host, const int port, const std::string_view path)
+    : host(host), port(std::to_string(port)){
 
         this->buffer = std::make_unique<beast::flat_buffer>();
         this->ioc = std::make_unique<net::io_context>();
@@ -36,19 +36,19 @@ Socket::Socket(const std::string& h, const int p)
                         " websocket-client-coro");
             }));
 
-        this->ws->handshake(this->host, "/");
-        std::cout << "handshake complete!\n";
+        this->ws->handshake(this->host, path);
+        std::cout << "handshake complete, connected!\n";
 
+
+        this->ws->write(net::buffer("HELLO!"));
+
+        this->ws->read(*this->buffer);
+
+        this->ws->close(websocket::close_code::normal);
+
+        std::cout << beast::make_printable(this->buffer->data()) << std::endl;
 }
 
 void Socket::run(std::vector<int>& history, const int& index){
 
-    std::cout << "Listening!\n";
-    std::string text = "ping";
-
-    while (true){
-        //this->ws->write(net::buffer(text));
-        //this->ws->read(this->buffer);
-        //this->buffer->consume(this->buffer->size());
-    }
 }

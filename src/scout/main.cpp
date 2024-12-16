@@ -1,5 +1,5 @@
 #include "scout.hpp"
-#include "../common/socket.hpp"
+#include "../common/coinbase_socket.hpp"
 #include <memory>
 #include <iostream>
 #include <string>
@@ -8,7 +8,9 @@
 
 int main(){
 
-    Socket* test = new Socket("echo.websocket.org", 443);
+    std::vector<std::string> products = {};
+    std::vector<std::string> channels = {};
+    Coinbase_Socket* test = new Coinbase_Socket(products, channels);
 
     return 0;
 

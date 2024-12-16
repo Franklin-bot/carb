@@ -8,16 +8,17 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-
-
+#include <unistd.h>
+#include <boost/beast/websocket/ssl.hpp>
 
 class Socket{
 public:
 
-    Socket(const std::string& host, const int port);
+    Socket(const std::string_view host, const int port, const std::string_view path);
     void run(std::vector<int>& history, const int& index);
+    //virtual int order();
 
-private:
+protected:
 
     std::string host;
     std::string port;
