@@ -8,14 +8,7 @@
 
 int main(){
 
-
-
-    std::vector<std::string> exchanges {"coinbase", "kraken"};
-    std::vector<std::string> coins {"Shiba Inu"};
-
-    auto port = 8080;
-    Socket* test = new Socket(std::string("example.com"), 8080);
-    delete(test);
+    Socket* test = new Socket(std::string("echo.websocket.org"), 8057);
 
     return 0;
 

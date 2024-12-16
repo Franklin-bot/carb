@@ -7,22 +7,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(Carb CXX)
 
 
-add_library(COMMON_lib STATIC
-    src/common/socket.cpp
-)
+find_package(Boost REQUIRED)
+find_package(OpenSSL REQUIRED)
 
-# Detect the operating system
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    set(LIBS_PATH "/usr/include/boost" "/usr/include/openssl")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    set(LIBS_PATH "/usr/local/Cellar/boost/1.86.0_2/include")
-else()
-    message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}")
-endif()
-include_directories(${LIBS_PATH})
-target_link_libraries(COMMON_lib PRIVATE ${Boost_LIBRARIES})
-
-
+add_library(COMMON_lib OBJECT src/common/socket.cpp)
+target_link_libraries(COMMON_lib Boost::boost)
+target_link_libraries(COMMON_lib ${OPENSSL_LIBRARIES})
 
 add_executable(scout_exe src/scout/main.cpp)
 target_link_libraries(scout_exe PRIVATE COMMON_lib)
