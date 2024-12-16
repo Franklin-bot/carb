@@ -7,5 +7,5 @@ conan install . --output-folder=build --build=missing
 ```
 ### 3. Build
 ```
-cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release & cmake --build .
+cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build .
 ```

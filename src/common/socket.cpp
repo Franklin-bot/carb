@@ -22,6 +22,10 @@ void Socket::run(std::vector<int>& history, const int& index){
 
 }
 
+void Socket::write(std::string& msg) { 
+    this->ws->write(net::buffer(msg));
+}
+
 void Socket::test() {
         this->ws->write(net::buffer("HELLO!"));
         this->ws->read(*this->buffer);
@@ -64,3 +68,4 @@ void Socket::close() {
 Socket::~Socket() {
     close();
 }
+

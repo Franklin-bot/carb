@@ -8,7 +8,8 @@
 
 int main(){
 
-    std::vector<std::string> products = {};
+    std::string pair1 = "BTC-USD";
+    std::vector<std::string> products = {pair1};
     std::vector<std::string> channels = {};
     Coinbase_Socket* test = new Coinbase_Socket(products, channels);
 

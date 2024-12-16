@@ -17,11 +17,15 @@ public:
     Socket(const std::string_view host, const int port, const std::string_view path);
     ~Socket();
     void run(std::vector<int>& history, const int& index);
+    void write(std::string& msg);
     void connect();
     void test();
     void close();
 
-    //virtual int order();
+    // virtual int order();
+    // virtual void subscribe();
+    // virtual void unsubscribe();
+
 
 protected:
 
