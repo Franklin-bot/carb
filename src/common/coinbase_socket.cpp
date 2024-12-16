@@ -22,6 +22,44 @@ Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& products, std::vector
 
 }
 
+std::string Coinbase_Socket::unsubscripStr(std::string& pair) {
+    rapidjson::Document document;
+    document.SetObject();
+
+    rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+
+    document.AddMember("type", rapidjson::Value("unsubscribe", allocator), allocator);
+
+    rapidjson::Value product_ids(rapidjson::kArrayType);
+    rapidjson::Value channels(rapidjson::kArrayType);
+
+    rapidjson::Value pairValue;
+    pairValue.SetString(pair.c_str(), pair.length(), allocator);
+    product_ids.PushBack(pairValue, allocator);
+
+    rapidjson::Value level2Value;
+    level2Value.SetString("level2", allocator);
+    channels.PushBack(level2Value, allocator);
+
+    rapidjson::Value tickerValue;
+    tickerValue.SetString("ticker", allocator);
+    channels.PushBack(tickerValue, allocator);
+
+    rapidjson::Value heartbeatValue;
+    heartbeatValue.SetString("heartbeat", allocator);
+    channels.PushBack(heartbeatValue, allocator);
+
+    document.AddMember("product_ids", product_ids, allocator);
+    document.AddMember("channels", channels, allocator);
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    document.Accept(writer);
+
+    std::cout << buffer.GetString() << std::endl;
+
+    return buffer.GetString();
+}
 
 std::string Coinbase_Socket::subscripStr(std::string& pair) {
     rapidjson::Document document;

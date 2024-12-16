@@ -17,5 +17,6 @@ public:
 private:
     std::vector<std::string> products;
     std::vector<std::string> channels;
-    std::string subscripStr(std::string& pair);
+    std::string unsubscripStr(std::string &pair);
+    std::string subscripStr(std::string &pair);
 };
