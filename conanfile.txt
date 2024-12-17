@@ -3,6 +3,7 @@ boost/1.86.0
 openssl/3.3.2
 rapidjson/cci.20230929
 jwt-cpp/0.7.0
+curlpp/0.8.1.cci.20240530
 
 [generators]
 CMakeDeps

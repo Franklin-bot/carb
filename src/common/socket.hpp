@@ -1,16 +1,17 @@
 #pragma once
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <string_view>
-#include <iostream>
 #include <memory>
 #include <vector>
 #include <unistd.h>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/beast/websocket/stream_base.hpp>
+#include <iostream>
 
 class Socket{
 public:

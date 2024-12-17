@@ -1,7 +1,4 @@
-#include "scout.hpp"
 #include "../common/coinbase_socket.hpp"
-#include <memory>
-#include <iostream>
 #include <string>
 
 

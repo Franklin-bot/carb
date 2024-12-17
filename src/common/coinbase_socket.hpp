@@ -1,3 +1,5 @@
+#pragma once
+
 #include "socket.hpp"
 
 #include <iostream>
@@ -6,7 +8,16 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h> // Optional for pretty output
-
+#include <jwt-cpp/jwt.h>
+#include <string>
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
+#include <openssl/evp.h>
+#include <openssl/ec.h>
+#include <openssl/pem.h>
+#include <openssl/rand.h>
+#include <boost/json.hpp>
 
 class Coinbase_Socket : public Socket {
 public:
@@ -18,4 +29,5 @@ public:
 private:
     std::vector<std::string> products;
     std::vector<std::string> channels;
+    std::string create_jwt();
 };
