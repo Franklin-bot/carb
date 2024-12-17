@@ -13,7 +13,7 @@ find_package(RapidJSON REQUIRED)
 find_package(jwt-cpp REQUIRED)
 find_package(curlpp REQUIRED)
 
-add_library(COMMON_lib OBJECT src/common/socket.cpp src/common/coinbase_socket.cpp)
+add_library(COMMON_lib OBJECT src/common/socket.cpp src/common/coinbase_socket.cpp src/common/utils/base64.cpp)
 target_link_libraries(COMMON_lib Boost::boost)
 target_link_libraries(COMMON_lib ${OPENSSL_LIBRARIES})
 target_link_libraries(COMMON_lib rapidjson)

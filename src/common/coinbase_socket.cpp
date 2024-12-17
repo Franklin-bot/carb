@@ -1,6 +1,4 @@
 #include "coinbase_socket.hpp"
-#include <jwt-cpp/traits/boost-json/defaults.h>
-
 
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -32,7 +30,15 @@ Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& products, std::vector
 
 void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vector<std::string>& c) {
 
-    std::string token = this->create_jwt();
+    std::string key_name{std::getenv("COINBASE_API_TOKEN")};
+    std::string key_secret{std::getenv("COINBASE_PRIVATE_TOKEN")};
+
+    std::string timestamp = std::to_string(time(0));
+    std::string message = timestamp + "GET/users/self/verify";
+
+    std::string hmac_key = base64_decode(key_secret);
+    std::string signature = this->CalcHmacSHA256(hmac_key, message);
+    std::string signature_b64 = base64_encode(signature);
 
     rapidjson::Document document;
     document.SetObject();
@@ -41,9 +47,6 @@ void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vect
 
     rapidjson::Value typeValue(sub ? "subscribe" : "unsubscribe", allocator);
     document.AddMember("type", typeValue, allocator);
-
-    rapidjson::Value tokenValue(token.c_str(), allocator);
-    document.AddMember("jwt", tokenValue, allocator);
 
     rapidjson::Value product_ids(rapidjson::kArrayType);
     rapidjson::Value channels(rapidjson::kArrayType);
@@ -58,6 +61,17 @@ void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vect
     }
     document.AddMember("channels", channels, allocator);
 
+    rapidjson::Value signatureValue(signature_b64.c_str(), allocator);
+    document.AddMember("signature", signatureValue, allocator);
+
+    rapidjson::Value apiKeyValue(key_name.c_str(), allocator);
+    document.AddMember("key", apiKeyValue, allocator);
+
+    document.AddMember("passphrase", rapidjson::Value("", allocator), allocator);
+    
+    rapidjson::Value timestampValue(timestamp.c_str(), allocator);
+    document.AddMember("timestamp", timestampValue, allocator);
+
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     document.Accept(writer);
@@ -69,27 +83,19 @@ void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vect
 
 }
 
+std::string Coinbase_Socket::CalcHmacSHA256(std::string_view decodedKey, std::string_view msg){
+    std::array<unsigned char, EVP_MAX_MD_SIZE> hash;
+    unsigned int hashLen;
 
-std::string Coinbase_Socket::create_jwt(){
+    HMAC(
+        EVP_sha256(),
+        decodedKey.data(),
+        static_cast<int>(decodedKey.size()),
+        reinterpret_cast<unsigned char const*>(msg.data()),
+        static_cast<int>(msg.size()),
+        hash.data(),
+        &hashLen
+    );
 
-    std::string key_name{std::getenv("COINBASE_API_TOKEN")};
-    std::string key_secret{std::getenv("COINBASE_PRIVATE_TOKEN")};
-
-    // Generate a random nonce
-    unsigned char nonce_raw[16];
-    RAND_bytes(nonce_raw, sizeof(nonce_raw));
-    std::string nonce(reinterpret_cast<char*>(nonce_raw), sizeof(nonce_raw));
-
-    // Create JWT token
-    auto token = jwt::create()
-        .set_subject(key_name)
-        .set_issuer("cdp")
-        .set_not_before(std::chrono::system_clock::now())
-        .set_expires_at(std::chrono::system_clock::now() + std::chrono::seconds{120})
-        .set_header_claim("kid", jwt::claim(key_name))
-        .set_header_claim("nonce", jwt::claim(nonce))
-        .sign(jwt::algorithm::es256(key_name, key_secret));
-
-    return token;
-
+    return std::string{reinterpret_cast<char const*>(hash.data()), hashLen};
 }
