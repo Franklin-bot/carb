@@ -35,9 +35,7 @@ void Socket::test() {
 void Socket::connect() {
         tcp::resolver resolver{*this->ioc};
         auto const results = resolver.resolve(this->host, this->port);
-        std::cout << "got results\n";
         auto ep = net::connect(beast::get_lowest_layer(*this->ws), results);
-        std::cout << "connected\n";
 
         if(!SSL_set_tlsext_host_name(this->ws->next_layer().native_handle(), this->host.c_str()))
             throw beast::system_error(
@@ -58,7 +56,7 @@ void Socket::connect() {
             }));
 
         this->ws->handshake(this->host, path);
-        std::cout << "handshake complete\n";
+        std::cout << "handshake complete, connected!\n";
 }
 
 void Socket::close() {

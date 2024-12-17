@@ -13,14 +13,11 @@
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
-#include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/ec.h>
 #include <openssl/pem.h>
 #include <openssl/rand.h>
 #include <boost/json.hpp>
-#include <ctime>
-#include "../common/utils/base64.h"
 
 class Coinbase_Socket : public Socket {
 public:
@@ -32,5 +29,5 @@ public:
 private:
     std::vector<std::string> products;
     std::vector<std::string> channels;
-    std::string CalcHmacSHA256(std::string_view decodedKey, std::string_view msg);
+    std::string create_jwt();
 };
