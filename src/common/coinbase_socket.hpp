@@ -11,12 +11,10 @@ class Coinbase_Socket : public Socket {
 public:
 
     Coinbase_Socket(std::vector<std::string>& products, std::vector<std::string>& channels);
-    void subscribe(std::string& msg);
+    void subscribe(bool sub, std::vector<std::string>& products, std::vector<std::string>& channels);
     
 
 private:
     std::vector<std::string> products;
     std::vector<std::string> channels;
-    std::string unsubscripStr(std::string &pair);
-    std::string subscripStr(std::string &pair);
 };
