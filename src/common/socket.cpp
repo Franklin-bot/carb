@@ -1,4 +1,5 @@
 #include "socket.hpp"
+#include <boost/beast/core/tcp_stream.hpp>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -14,7 +15,6 @@ Socket::Socket(const std::string_view host, const int port, const std::string_vi
         this->ioc = std::make_unique<net::io_context>();
         this->ctx = std::make_unique<ssl::context>(ssl::context::tlsv12_client);
         this->ws = std::make_unique<websocket::stream<ssl::stream<tcp::socket>>>(*this->ioc, *this->ctx);
-
 
 }
 

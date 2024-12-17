@@ -10,6 +10,7 @@
 #include <vector>
 #include <unistd.h>
 #include <boost/beast/websocket/ssl.hpp>
+#include <boost/beast/websocket/stream_base.hpp>
 
 class Socket{
 public:

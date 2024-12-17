@@ -14,15 +14,23 @@ Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& products, std::vector
     products(products),
     channels(channels)
 {
-    std::string pair = "ETH-USD";
+    websocket::stream_base::timeout opt{
+        // handshake timeout
+        std::chrono::seconds(3),
+        // heartbeat timeout
+        std::chrono::seconds(2),
+        false
+    };
+    this->ws->set_option(opt);
     connect();
     subscribe(true, products, channels);
     test();
     close();
-
 }
 
 void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vector<std::string>& c) {
+
+
     rapidjson::Document document;
     document.SetObject();
 
@@ -52,5 +60,6 @@ void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vect
 
     std::string msg = buffer.GetString();
     this->write(msg);
+
 }
 
