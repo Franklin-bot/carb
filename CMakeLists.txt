@@ -7,11 +7,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(Carb CXX)
 
 
+find_package(jwt-cpp REQUIRED)
 find_package(Boost REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(RapidJSON REQUIRED)
 
 add_library(COMMON_lib OBJECT src/common/socket.cpp src/common/coinbase_socket.cpp)
+target_link_libraries(COMMON_lib jwt-cpp::jwt-cpp)
 target_link_libraries(COMMON_lib Boost::boost)
 target_link_libraries(COMMON_lib ${OPENSSL_LIBRARIES})
 target_link_libraries(COMMON_lib rapidjson)

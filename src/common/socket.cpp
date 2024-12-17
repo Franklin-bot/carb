@@ -15,7 +15,6 @@ Socket::Socket(const std::string_view host, const int port, const std::string_vi
         this->ctx = std::make_unique<ssl::context>(ssl::context::tlsv12_client);
         this->ws = std::make_unique<websocket::stream<ssl::stream<tcp::socket>>>(*this->ioc, *this->ctx);
 
-
 }
 
 void Socket::run(std::vector<int>& history, const int& index){
