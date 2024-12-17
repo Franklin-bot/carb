@@ -19,6 +19,7 @@
 #include <openssl/pem.h>
 #include <openssl/rand.h>
 #include <boost/json.hpp>
+#include <ctime>
 #include "../common/utils/base64.h"
 
 class Coinbase_Socket : public Socket {

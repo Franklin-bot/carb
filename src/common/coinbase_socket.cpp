@@ -9,7 +9,7 @@ namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& products, std::vector<std::string>& channels) : 
-    Socket("ws-feed.exchange.coinbase.com", 443, "/"),
+    Socket("advanced-trade-ws.coinbase.com", 443, "/"),
     products(products),
     channels(channels)
 {
@@ -33,7 +33,7 @@ void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vect
     std::string key_name{std::getenv("COINBASE_API_TOKEN")};
     std::string key_secret{std::getenv("COINBASE_PRIVATE_TOKEN")};
 
-    std::string timestamp = std::to_string(time(0));
+    std::string timestamp = std::to_string(std::time(0));
     std::string message = timestamp + "GET/users/self/verify";
 
     std::string hmac_key = base64_decode(key_secret);
