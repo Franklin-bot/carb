@@ -10,8 +10,8 @@ namespace net = boost::asio;            // from <boost/asio.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& products, std::vector<std::string>& channels) : 
-    Socket("ws-feed.exchange.coinbase.com", 443, "/"),
+Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& Products, std::vector<std::string>& channels) : 
+    Socket("advanced-trade-ws.coinbase.com", 443, "/"),
     products(products),
     channels(channels)
 {
@@ -42,21 +42,24 @@ void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vect
     rapidjson::Value typeValue(sub ? "subscribe" : "unsubscribe", allocator);
     document.AddMember("type", typeValue, allocator);
 
-    rapidjson::Value tokenValue(token.c_str(), allocator);
-    document.AddMember("jwt", tokenValue, allocator);
 
     rapidjson::Value product_ids(rapidjson::kArrayType);
-    rapidjson::Value channels(rapidjson::kArrayType);
+    rapidjson::Value channel(rapidjson::kArrayType);
 
-    for (std::string& product : p){
-        product_ids.PushBack(rapidjson::Value(product.c_str(), allocator), allocator);
-    }
+    // for (std::string& product : p){
+    //     product_ids.PushBack(rapidjson::Value(product.c_str(), allocator), allocator);
+    // }
+    product_ids.PushBack(rapidjson::Value("ETH-USD", allocator), allocator);
+    product_ids.PushBack(rapidjson::Value("ETH-EUR", allocator), allocator);
     document.AddMember("product_ids", product_ids, allocator);
 
-    for (std::string& channel : c){
-        channels.PushBack(rapidjson::Value(channel.c_str(), allocator), allocator);
-    }
-    document.AddMember("channels", channels, allocator);
+    // for (std::string& channel : c){
+    //     channels.PushBack(rapidjson::Value(channel.c_str(), allocator), allocator);
+    // }
+    document.AddMember("channel", "level2", allocator);
+
+    rapidjson::Value tokenValue(token.c_str(), allocator);
+    document.AddMember("jwt", tokenValue, allocator);
 
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -74,6 +77,8 @@ std::string Coinbase_Socket::create_jwt(){
 
     std::string key_name{std::getenv("COINBASE_API_TOKEN")};
     std::string key_secret{std::getenv("COINBASE_PRIVATE_TOKEN")};
+    // std::cout << key_name << std::endl;
+    // std::cout << key_secret << std::endl;
 
     // Generate a random nonce
     unsigned char nonce_raw[16];

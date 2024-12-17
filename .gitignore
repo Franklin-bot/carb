@@ -2,3 +2,5 @@ build
 .cache
 **/build
 **/.cache
+
+secrets.sh
