@@ -2,8 +2,7 @@
 
 PriceBuffer::PriceBuffer(uint64_t ts, uint64_t windowed_time) 
     : windowed_time(windowed_time), ts(ts),
-    length(fmod(windowed_time,ts) + 1)
-    {
+    length(windowed_time % ts + 1) {
     prices.reserve(length);
     times.reserve(length);
 }
@@ -43,6 +42,7 @@ std::pair<uint64_t, uint64_t> PriceBuffer::lastPrice() {
         throw std::out_of_range("No prices in the buffer");
     }
 
+    // TODO, just run the sampler for the past value
     return std::make_pair(prices.back(), times.back());
 }
 
@@ -77,7 +77,11 @@ int8_t PriceBuffer::isLastPeakOrValley() {
     }
 }
 
+uint64_t PriceBuffer::interpolate(uint64_t t, uint64_t t0, uint64_t t1, uint64_t p0, uint64_t p1) {
+            uint64_t alpha = (t - t0) / (t1 - t0);
+            return p0 + alpha * (p1 - p0);
 
+}
 
 void PriceBuffer::samplePrices() {
     sampled_prices.clear();
@@ -98,15 +102,13 @@ void PriceBuffer::samplePrices() {
             size_t index = std::distance(times.begin(), it);
 
 
-
             // linear interp
             uint64_t t0 = times[index - 1];
             uint64_t t1 = times[index];
             uint64_t p0 = prices[index - 1];
             uint64_t p1 = prices[index];
             
-            uint64_t alpha = (t - t0) / (t1 - t0);
-            uint64_t interpolated_price = p0 + alpha * (p1 - p0);
+            uint64_t interpolated_price = interpolate(t, t0, t1, p0, p1);
 
             /* other interpolations
                 // stepwise interp
