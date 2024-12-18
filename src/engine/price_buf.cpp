@@ -1,9 +1,14 @@
 #include "price_buf.hpp"
 
-PriceBuffer::PriceBuffer(uint16_t window_size) : window_size(window_size) {
-    prices.reserve(window_size+1);
-    times.reserve(window_size+1);
+PriceBuffer::PriceBuffer(uint64_t ts, uint64_t windowed_time) 
+    : windowed_time(windowed_time), ts(ts),
+    length(fmod(windowed_time,ts) + 1)
+    {
+    prices.reserve(length);
+    times.reserve(length);
 }
+
+
 
 std::pair<uint64_t, uint64_t> PriceBuffer::histNormalDist() {
     uint64_t sum = 0;
@@ -24,7 +29,7 @@ std::pair<uint64_t, uint64_t> PriceBuffer::histNormalDist() {
 
 // Adds a price and its associated time to the buffers
 void PriceBuffer::addPrice(std::pair<uint64_t, uint64_t> p) {
-    if (prices.size() >= window_size + 1) {
+    if (times[0] <= p.second - windowed_time) {
         prices.erase(prices.begin());
         times.erase(times.begin());
     }
@@ -34,7 +39,6 @@ void PriceBuffer::addPrice(std::pair<uint64_t, uint64_t> p) {
 
 // Returns the last price added to the buffer
 std::pair<uint64_t, uint64_t> PriceBuffer::lastPrice() {
-
     if (prices.empty() || times.empty()) {
         throw std::out_of_range("No prices in the buffer");
     }
@@ -73,3 +77,44 @@ int8_t PriceBuffer::isLastPeakOrValley() {
     }
 }
 
+
+
+void PriceBuffer::samplePrices() {
+    sampled_prices.clear();
+
+    uint64_t start_time = times.front();
+    uint64_t end_time = times.back();
+
+    for (uint64_t t = start_time; t <= end_time; t += ts) {
+        auto it = std::lower_bound(times.begin(), times.end(), t);
+        
+        if (it == times.begin()) {
+            sampled_prices.push_back(
+                std::pair<uint64_t, uint64_t>(prices.front(), start_time));
+        } else if (it == times.end()) {
+            sampled_prices.push_back(
+                std::pair<uint64_t, uint64_t>(prices.back(), end_time));
+        } else {
+            size_t index = std::distance(times.begin(), it);
+
+
+
+            // linear interp
+            uint64_t t0 = times[index - 1];
+            uint64_t t1 = times[index];
+            uint64_t p0 = prices[index - 1];
+            uint64_t p1 = prices[index];
+            
+            uint64_t alpha = (t - t0) / (t1 - t0);
+            uint64_t interpolated_price = p0 + alpha * (p1 - p0);
+
+            /* other interpolations
+                // stepwise interp
+                uint64_t interpolated_price = p0;
+            */
+
+            sampled_prices.push_back(std::pair<uint64_t, uint64_t>(interpolated_price, t));
+
+        }
+    }
+}
