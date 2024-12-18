@@ -1,5 +1,4 @@
 #include "coinbase_socket.hpp"
-#include <jwt-cpp/traits/boost-json/defaults.h>
 
 
 
@@ -10,7 +9,7 @@ namespace net = boost::asio;            // from <boost/asio.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& Products, std::vector<std::string>& channels) : 
+Coinbase_Socket::Coinbase_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels) : 
     Socket("advanced-trade-ws.coinbase.com", 443, "/"),
     products(products),
     channels(channels)
@@ -23,52 +22,51 @@ Coinbase_Socket::Coinbase_Socket(std::vector<std::string>& Products, std::vector
         false
     };
     this->ws->set_option(opt);
+    std::cout << "connecting\n";
     connect();
-    subscribe(true, products, channels);
-    test();
-    close();
+    std::cout << "subscribing\n";
+    subscribe(true, this->products, channels);
 }
 
 
-void Coinbase_Socket::subscribe(bool sub, std::vector<std::string>& p, std::vector<std::string>& c) {
+void Coinbase_Socket::subscribe(bool sub, const std::vector<std::string>& p, const std::vector<std::string>& c) {
 
-    std::string token = this->create_jwt();
+    for (const std::string& channel_id : c){
 
-    rapidjson::Document document;
-    document.SetObject();
+        rapidjson::Document document;
+        document.SetObject();
 
-    rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+        rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
 
-    rapidjson::Value typeValue(sub ? "subscribe" : "unsubscribe", allocator);
-    document.AddMember("type", typeValue, allocator);
+        rapidjson::Value typeValue(sub ? "subscribe" : "unsubscribe", allocator);
+        document.AddMember("type", typeValue, allocator);
 
 
-    rapidjson::Value product_ids(rapidjson::kArrayType);
-    rapidjson::Value channel(rapidjson::kArrayType);
+        rapidjson::Value product_ids(rapidjson::kArrayType);
 
-    // for (std::string& product : p){
-    //     product_ids.PushBack(rapidjson::Value(product.c_str(), allocator), allocator);
-    // }
-    product_ids.PushBack(rapidjson::Value("ETH-USD", allocator), allocator);
-    product_ids.PushBack(rapidjson::Value("ETH-EUR", allocator), allocator);
-    document.AddMember("product_ids", product_ids, allocator);
+        for (const std::string& product : p){
+            product_ids.PushBack(rapidjson::Value(product.c_str(), allocator), allocator);
+        }
+        document.AddMember("product_ids", product_ids, allocator);
 
-    // for (std::string& channel : c){
-    //     channels.PushBack(rapidjson::Value(channel.c_str(), allocator), allocator);
-    // }
-    document.AddMember("channel", "level2", allocator);
+        document.AddMember("channel", rapidjson::Value(channel_id.c_str(), allocator), allocator);
 
-    rapidjson::Value tokenValue(token.c_str(), allocator);
-    document.AddMember("jwt", tokenValue, allocator);
+        if (channel_id.compare("level2") == 0){
+            std::string token = this->create_jwt();
+            rapidjson::Value tokenValue(token.c_str(), allocator);
+            document.AddMember("jwt", tokenValue, allocator);
+        }
 
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    document.Accept(writer);
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        document.Accept(writer);
 
-    std::cout << buffer.GetString() << std::endl;
+        std::cout << buffer.GetString() << std::endl;
 
-    std::string msg = buffer.GetString();
-    this->write(msg);
+        std::string msg = buffer.GetString();
+        this->write(msg);
+
+    }
 
 }
 
@@ -96,5 +94,51 @@ std::string Coinbase_Socket::create_jwt(){
         .sign(jwt::algorithm::es256(key_name, key_secret));
 
     return token;
+}
+
+
+void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::vector<Coinbase_Ticker>>& tickers, 
+        std::unordered_map<std::string, std::map<uint32_t, uint32_t>>& orderbooks){
+
+    std::cout << "Begin Listening\n";
+    int l2_count = 0;
+    int ticker_count = 0;
+    time_t end = time(0) + seconds;
+
+    while (time(0) < end) {
+        this->ws->read(*this->buffer);
+        std::string message = beast::buffers_to_string(this->buffer->data());
+        rapidjson::Document document;
+        document.Parse(message.c_str());
+
+        // heavily optimize this later, remove branching
+        if (document.HasMember("channel")){
+            //std::string product = document["product_id"].GetString();
+            std::string channel = document["channel"].GetString();
+             if (channel.compare("ticker") == 0){
+            //     this->handleTicker(document, tickers[product]);
+                 l2_count++;
+             } else if (channel.compare("l2_data") == 0){
+            //     this->handleL2(document, orderbooks[product]);
+                 ticker_count++;
+             }
+        }
+        this->buffer->clear();
+        // TODO: handle errors messages here
+    }
+    std::cout << l2_count << " l2 messages handled\n";
+    std::cout << ticker_count << " ticker messages handled\n";
+}
+
+
+void Coinbase_Socket::handleTicker(const rapidjson::Document& document, std::vector<Coinbase_Ticker>& ticker){
+
+    uint32_t price = std::stold(document["price"].GetString())*precision;
+    uint64_t timestamp = convertTime(document["event time"].GetString()); 
+    ticker.push_back(Coinbase_Ticker(price, timestamp));
+}
+
+void Coinbase_Socket::handleL2(const rapidjson::Document& document, std::map<uint32_t, uint32_t>& orderbook){
 
 }
+

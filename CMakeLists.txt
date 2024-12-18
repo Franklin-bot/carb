@@ -21,7 +21,7 @@ target_link_libraries(COMMON_lib jwt-cpp::jwt-cpp)
 target_link_libraries(COMMON_lib curlpp::curlpp)
 target_link_libraries(COMMON_lib Boost::json)
 
-add_executable(scout_exe src/scout/main.cpp)
+add_executable(scout_exe src/scout/main.cpp src/scout/scout.cpp)
 target_link_libraries(scout_exe PRIVATE COMMON_lib)
 
 

@@ -60,12 +60,14 @@ void Socket::connect() {
 }
 
 void Socket::close() {
+    std::cout << "closing\n";
     if(this->ws->is_open()) {
         this->ws->close(websocket::close_code::normal);
     }
 }
 
 Socket::~Socket() {
+    std::cout << "destructing\n";
     close();
 }
 

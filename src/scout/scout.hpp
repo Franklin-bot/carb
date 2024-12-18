@@ -2,31 +2,20 @@
 
 #include <string>
 #include <vector>
-#include "../common/socket.hpp"
+#include "../common/coinbase_socket.hpp"
+#include "../common/coinbase/data.hpp"
 
 class Scout {
 public:
 
-    Scout(){};
-    Scout(const std::vector<std::string>& targets, const std::vector<std::string>& exchanges);
+    Scout(const std::vector<std::string>& targets);
 
-    std::vector<int> calculate_discrepancies();
 
 private:
+    std::vector<std::string> targets;
+    // std::unique_ptr<Coinbase_Socket> Coinbase;
+    Coinbase_Socket* Coinbase;
 
-    std::vector<Socket> connections;
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
+    std::unordered_map<std::string, std::vector<Coinbase_Ticker>> Coinbase_Tickers;
+    std::unordered_map<std::string, std::map<uint32_t, uint32_t>> Coinbase_Orderbooks;
 };

@@ -23,10 +23,7 @@ public:
     void connect();
     void test();
     void close();
-
-    // virtual int order();
-    // virtual void subscribe();
-    // virtual void unsubscribe();
+    void listen();
 
 
 protected:

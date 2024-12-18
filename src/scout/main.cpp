@@ -1,14 +1,12 @@
-#include "../common/coinbase_socket.hpp"
+#include "scout.hpp"
 #include <string>
 
 
 
 int main(){
 
-    std::vector<std::string> products = {"ETH-EUR", "ETH-USD"};
-    std::vector<std::string> channels = {"ticker", "heartbeat", "level2"};
-    Coinbase_Socket* test = new Coinbase_Socket(products, channels);
-
+    const std::vector<std::string> products = {"ETH-EUR", "ETH-USD"};
+    std::unique_ptr<Scout> test = std::make_unique<Scout>(products);
     return 0;
 
 
