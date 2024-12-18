@@ -116,11 +116,9 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
             //std::string product = document["product_id"].GetString();
             std::string channel = document["channel"].GetString();
              if (channel.compare("ticker") == 0){
-            //     this->handleTicker(document, tickers[product]);
-                 l2_count++;
-             } else if (channel.compare("l2_data") == 0){
-            //     this->handleL2(document, orderbooks[product]);
                  ticker_count++;
+             } else if (channel.compare("l2_data") == 0){
+                 l2_count++;
              }
         }
         this->buffer->clear();
