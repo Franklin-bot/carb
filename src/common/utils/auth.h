@@ -19,12 +19,7 @@ inline std::string sha256(const std::string inputStr)
     unsigned char hash[SHA256_DIGEST_LENGTH];
     const unsigned char* data = (const unsigned char*)inputStr.c_str();
     SHA256(data, inputStr.size(), hash);
-    std::stringstream ss;
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
-    {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
-    }
-    return ss.str();
+    return std::string(reinterpret_cast<const char*>(hash), SHA256_DIGEST_LENGTH);
 }
 
 inline std::string HmacSHA512(std::string_view decodedKey, std::string_view msg)
@@ -61,4 +56,12 @@ inline std::string base64_decode(const std::string& data){
         std::string(base64_it(data.begin()), base64_it(data.end())),
         [](char chr) { return chr == '\0'; }
     );
+}
+
+inline std::string binaryToHex(const std::string& binaryData) {
+    std::ostringstream hexStream;
+    for (unsigned char c : binaryData) {
+        hexStream << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(c);
+    }
+    return hexStream.str();
 }

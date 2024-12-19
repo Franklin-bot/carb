@@ -25,8 +25,8 @@ std::string Kraken_Socket::create_token(){
     const std::string url = "api.kraken.com";
     const int port = 443;
     const std::string path = "/0/private/GetWebSocketsToken";
-    std::string key_name{std::getenv("KRAKEN_API_TOKEN")};
-    std::string key_secret{std::getenv("KRAKEN_PRIVATE_TOKEN")};
+    const std::string key_name{std::getenv("KRAKEN_API_TOKEN")};
+    const std::string key_secret{std::getenv("KRAKEN_PRIVATE_TOKEN")};
 
     uint64_t nonce = (std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count());
