@@ -1,12 +1,7 @@
 #include "coinbase_socket.hpp"
 
-
-
 namespace beast = boost::beast;         // from <boost/beast.hpp>
-namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
-namespace net = boost::asio;            // from <boost/asio.hpp>
-namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 Coinbase_Socket::Coinbase_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels) : 
@@ -15,21 +10,19 @@ Coinbase_Socket::Coinbase_Socket(const std::vector<std::string>& products, const
     channels(channels)
 {
     websocket::stream_base::timeout opt{
-        // handshake timeout
         std::chrono::seconds(3),
-        // heartbeat timeout
         std::chrono::seconds(2),
         false
-    };
-    this->ws->set_option(opt);
+        };
+    ws.set_option(opt);
     std::cout << "connecting\n";
     connect();
     std::cout << "subscribing\n";
-    subscribe(true, this->products, channels);
+    subscribe(true, products, channels);
 }
 
 
-void Coinbase_Socket::subscribe(bool sub, const std::vector<std::string>& p, const std::vector<std::string>& c) {
+void Coinbase_Socket::subscribe(const bool sub, const std::vector<std::string>& p, const std::vector<std::string>& c) {
 
     for (const std::string& channel_id : c){
 
@@ -43,16 +36,14 @@ void Coinbase_Socket::subscribe(bool sub, const std::vector<std::string>& p, con
 
 
         rapidjson::Value product_ids(rapidjson::kArrayType);
-
         for (const std::string& product : p){
             product_ids.PushBack(rapidjson::Value(product.c_str(), allocator), allocator);
         }
         document.AddMember("product_ids", product_ids, allocator);
-
         document.AddMember("channel", rapidjson::Value(channel_id.c_str(), allocator), allocator);
 
         if (channel_id.compare("level2") == 0){
-            std::string token = this->create_jwt();
+            std::string token = create_jwt();
             rapidjson::Value tokenValue(token.c_str(), allocator);
             document.AddMember("jwt", tokenValue, allocator);
         }
@@ -62,12 +53,9 @@ void Coinbase_Socket::subscribe(bool sub, const std::vector<std::string>& p, con
         document.Accept(writer);
 
         std::cout << buffer.GetString() << std::endl;
-
         std::string msg = buffer.GetString();
-        this->write(msg);
-
+        write(msg);
     }
-
 }
 
 
@@ -75,15 +63,11 @@ std::string Coinbase_Socket::create_jwt(){
 
     std::string key_name{std::getenv("COINBASE_API_TOKEN")};
     std::string key_secret{std::getenv("COINBASE_PRIVATE_TOKEN")};
-    // std::cout << key_name << std::endl;
-    // std::cout << key_secret << std::endl;
 
-    // Generate a random nonce
     unsigned char nonce_raw[16];
     RAND_bytes(nonce_raw, sizeof(nonce_raw));
     std::string nonce(reinterpret_cast<char*>(nonce_raw), sizeof(nonce_raw));
 
-    // Create JWT token
     auto token = jwt::create()
         .set_subject(key_name)
         .set_issuer("cdp")
@@ -106,8 +90,8 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
     time_t end = time(0) + seconds;
 
     while (time(0) < end) {
-        this->ws->read(*this->buffer);
-        std::string message = beast::buffers_to_string(this->buffer->data());
+        ws.read(buffer);
+        std::string message = beast::buffers_to_string(buffer.data());
         rapidjson::Document document;
         document.Parse(message.c_str());
 
@@ -121,7 +105,7 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
                  l2_count++;
              }
         }
-        this->buffer->clear();
+        buffer.clear();
         // TODO: handle errors messages here
     }
     std::cout << l2_count << " l2 messages handled\n";
@@ -139,4 +123,3 @@ void Coinbase_Socket::handleTicker(const rapidjson::Document& document, std::vec
 void Coinbase_Socket::handleL2(const rapidjson::Document& document, std::map<uint32_t, uint32_t>& orderbook){
 
 }
-
