@@ -28,7 +28,7 @@ private:
 
     // -1 if valley, 0 is none, 1 if peak
     std::pair<uint64_t, uint64_t> histNormalDist();
-    uint64_t interpolate(uint64_t t, uint64_t t0, uint64_t t1, uint64_t p0, uint64_t p1)
+    uint64_t interpolate(uint64_t t, uint64_t t0, uint64_t t1, uint64_t p0, uint64_t p1);
     
 
 public:
