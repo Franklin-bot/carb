@@ -26,7 +26,7 @@
 #include <rapidjson/document.h>
 #include <boost/beast/core/tcp_stream.hpp>
 
-constexpr static uint32_t precision = 10e8;
+constexpr static uint32_t precision = 1e8;
 
 class Coinbase_Socket : public Socket {
 public:

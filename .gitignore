@@ -4,3 +4,4 @@ build
 **/.cache
 
 secrets.sh
+/data/

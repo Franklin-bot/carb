@@ -42,7 +42,7 @@ void Coinbase_Socket::subscribe(const bool sub, const std::vector<std::string>& 
         document.AddMember("product_ids", product_ids, allocator);
         document.AddMember("channel", rapidjson::Value(channel_id.c_str(), allocator), allocator);
 
-        if (channel_id.compare("level2") == 0){
+        if (channel_id == "level2"){
             std::string token = create_jwt();
             rapidjson::Value tokenValue(token.c_str(), allocator);
             document.AddMember("jwt", tokenValue, allocator);
@@ -98,10 +98,10 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
         // heavily optimize this later, remove branching
         if (document.HasMember("channel")){
             std::string channel = document["channel"].GetString();
-             if (channel.compare("ticker") == 0){
+             if (channel == "ticker"){
                  handleTicker(document, tickers);
                  ticker_count++;
-             } else if (channel.compare("l2_data") == 0){
+             } else if (channel == "l2_data"){
                  handleL2(document, orderbooks);
                  l2_count++;
              }
