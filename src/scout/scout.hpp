@@ -3,17 +3,19 @@
 #include <string>
 #include <vector>
 #include "../common/coinbase_socket.hpp"
-#include "../common/coinbase/data.hpp"
+#include "../common/utils/data.h"
 
 class Scout {
 public:
 
-    Scout(const std::vector<std::string>& targets);
+    Scout(const int duration, const std::vector<std::string>& targets);
+    void toCSV(std::string_view path);
 
 private:
+    int duration;
     std::vector<std::string> targets;
     Coinbase_Socket Coinbase;
 
-    std::unordered_map<std::string, std::vector<Coinbase_Ticker>> Coinbase_Tickers;
-    std::unordered_map<std::string, std::map<uint32_t, uint32_t>> Coinbase_Orderbooks;
+    std::unordered_map<std::string, std::vector<Ticker_Info>> Coinbase_Tickers;
+    std::unordered_map<std::string, std::vector<Orderbook_Info>> Coinbase_Orderbooks;
 };

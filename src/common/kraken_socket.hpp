@@ -19,7 +19,7 @@
 #include <openssl/rand.h>
 #include <boost/json.hpp>
 #include "../common/utils/date.h"
-#include "../common/coinbase/data.hpp"
+#include "../common/utils/data.h"
 #include "../common/utils/time.h"
 #include <jwt-cpp/traits/boost-json/defaults.h>
 #include <rapidjson/document.h>
@@ -39,7 +39,6 @@ public:
 
     Kraken_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels);
 
-
 private:
     std::vector<std::string> products;
     std::vector<std::string> channels;
@@ -47,7 +46,7 @@ private:
 
     std::string create_token();
     void subscribe(const bool sub, const std::vector<std::string>& products, const std::vector<std::string>& channels);
-    void handleTicker(const rapidjson::Document& document, std::vector<Coinbase_Ticker>& ticker);
+    void handleTicker(const rapidjson::Document& document, std::vector<Ticker_Info>& ticker);
     void handleL2(const rapidjson::Document& document, std::map<uint32_t, uint32_t>& orderbook);
 
 

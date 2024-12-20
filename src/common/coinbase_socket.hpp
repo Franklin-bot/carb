@@ -20,8 +20,8 @@
 #include <openssl/rand.h>
 #include <boost/json.hpp>
 #include "../common/utils/date.h"
-#include "../common/coinbase/data.hpp"
 #include "../common/utils/time.h"
+#include "../common/utils/data.h"
 #include <jwt-cpp/traits/boost-json/defaults.h>
 #include <rapidjson/document.h>
 #include <boost/beast/core/tcp_stream.hpp>
@@ -32,8 +32,8 @@ class Coinbase_Socket : public Socket {
 public:
 
     Coinbase_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels);
-    void listen(int seconds, std::unordered_map<std::string, std::vector<Coinbase_Ticker>>& tickers, 
-            std::unordered_map<std::string, std::map<uint32_t, uint32_t>>& orderbooks);
+    void listen(int seconds, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers, 
+            std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks);
 
 private:
     std::vector<std::string> products;
@@ -41,6 +41,6 @@ private:
     std::string create_jwt();
 
     void subscribe(const bool sub, const std::vector<std::string>& products, const std::vector<std::string>& channels);
-    void handleTicker(const rapidjson::Document& document, std::vector<Coinbase_Ticker>& ticker);
-    void handleL2(const rapidjson::Document& document, std::map<uint32_t, uint32_t>& orderbook);
+    void handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers);
+    void handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks);
 };

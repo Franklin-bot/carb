@@ -1,4 +1,5 @@
 #include "kraken_socket.hpp"
+#include <rapidjson/rapidjson.h>
 
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -37,6 +38,7 @@ std::string Kraken_Socket::create_token(){
     std::string decoded_secret = base64_decode(key_secret);
     std::string signature = HmacSHA512(decoded_secret, message);
     std::string signature_b64 = base64_encode(signature);
+    std::cout << "signature " << signature_b64 << "\n";
 
     rapidjson::Document document;
     document.SetObject();
@@ -82,3 +84,37 @@ std::string Kraken_Socket::create_token(){
     return "";
 
 };
+
+void Kraken_Socket::subscribe(const bool sub, const std::vector<std::string>& p, const std::vector<std::string>& c){
+
+    for (const std::string& channel_id : c){
+
+        rapidjson::Document document;
+        document.SetObject();
+
+        rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+
+        rapidjson::Value typeValue(sub ? "subscribe" : "unsubscribe", allocator);
+        document.AddMember("method", typeValue, allocator);
+
+        rapidjson::Value paramsValue(rapidjson::kObjectType);
+        paramsValue.AddMember("channel", rapidjson::Value(channel_id.c_str(), allocator), allocator);
+        rapidjson::Value product_ids(rapidjson::kArrayType);
+        for (const std::string& product : p){
+            product_ids.PushBack(rapidjson::Value(product.c_str(), allocator), allocator);
+        }
+        paramsValue.AddMember("symbol", product_ids, allocator);
+        paramsValue.AddMember("token", rapidjson::Value(token.c_str(), allocator), allocator);
+        document.AddMember("params", paramsValue, allocator);
+
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        document.Accept(writer);
+
+        std::cout << buffer.GetString() << std::endl;
+        std::string msg = buffer.GetString();
+        write(msg);
+    }
+
+
+}

@@ -81,8 +81,8 @@ std::string Coinbase_Socket::create_jwt(){
 }
 
 
-void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::vector<Coinbase_Ticker>>& tickers, 
-        std::unordered_map<std::string, std::map<uint32_t, uint32_t>>& orderbooks){
+void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers, 
+        std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks){
 
     std::cout << "Begin Listening\n";
     int l2_count = 0;
@@ -97,11 +97,12 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
 
         // heavily optimize this later, remove branching
         if (document.HasMember("channel")){
-            //std::string product = document["product_id"].GetString();
             std::string channel = document["channel"].GetString();
              if (channel.compare("ticker") == 0){
+                 handleTicker(document, tickers);
                  ticker_count++;
              } else if (channel.compare("l2_data") == 0){
+                 handleL2(document, orderbooks);
                  l2_count++;
              }
         }
@@ -110,16 +111,62 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
     }
     std::cout << l2_count << " l2 messages handled\n";
     std::cout << ticker_count << " ticker messages handled\n";
+
+    int tickers_size = 0;
+    for (const auto& pair : tickers){
+        tickers_size += pair.second.size();
+    }
+    int orderbooks_size = 0;
+    for (const auto& pair : orderbooks){
+        orderbooks_size += pair.second.size();
+    }
+    std::cout << orderbooks_size << " l2 messages saved\n";
+    std::cout << tickers_size << " ticker messages saved\n";
 }
 
 
-void Coinbase_Socket::handleTicker(const rapidjson::Document& document, std::vector<Coinbase_Ticker>& ticker){
+void Coinbase_Socket::handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers){
 
-    uint32_t price = std::stold(document["price"].GetString())*precision;
-    uint64_t timestamp = convertTime(document["event time"].GetString()); 
-    ticker.push_back(Coinbase_Ticker(price, timestamp));
+    // heavily optimize later, but seems fast enough for now
+    try {
+        uint64_t timestamp = convertTime(document["timestamp"].GetString()); 
+        const rapidjson::Value& data = document["events"][0]["tickers"][0];
+        std::string product = data["product_id"].GetString();
+        const uint64_t price = static_cast<uint64_t>(std::stod(data["price"].GetString()) * precision);
+        const uint64_t best_bid = static_cast<uint64_t>(std::stod(data["best_bid"].GetString()) * precision);
+        const uint64_t best_ask = static_cast<uint64_t>(std::stod(data["best_ask"].GetString()) * precision);
+        const uint64_t best_bid_q = static_cast<uint64_t>(std::stod(data["best_bid_quantity"].GetString()) * precision);
+        const uint64_t best_ask_q = static_cast<uint64_t>(std::stod(data["best_ask_quantity"].GetString()) * precision);
+        tickers[product].push_back(Ticker_Info(price, timestamp, best_ask, best_bid, best_ask_q, best_bid_q));
+
+    } catch(std::exception &e){
+        std::cout << "Could not handle ticker message due to exception: " << e.what() << "\n";
+    }
 }
 
-void Coinbase_Socket::handleL2(const rapidjson::Document& document, std::map<uint32_t, uint32_t>& orderbook){
+void Coinbase_Socket::handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks){
+
+    // heavily optimize later, but seems fast enough for now
+    try {
+        uint64_t timestamp = convertTime(document["timestamp"].GetString()); 
+        const rapidjson::Value& event = document["events"][0];
+        const std::string type = event["type"].GetString();
+        const std::string product = event["product_id"].GetString();
+        Orderbook_Info entry = (type == "snapshot")
+            ? Orderbook_Info(timestamp)
+            : orderbooks[product].back(); 
+        for (const auto& update : event["updates"].GetArray()){
+            uint64_t price = static_cast<uint64_t>(std::stod(update["price_level"].GetString()) * precision);
+            uint64_t q = static_cast<uint64_t>(std::stod(update["new_quantity"].GetString()) * precision);
+            if (update["side"] == "bid") entry.bids[price] = q;
+            else entry.asks[price]=q;
+        }
+        orderbooks[product].emplace_back(entry);
+
+    } catch (std::exception &e){
+        std::cout << "Could not handle l2 message due to exception: " << e.what() << "\n";
+    }
+
+
 
 }
