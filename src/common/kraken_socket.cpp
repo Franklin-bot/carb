@@ -1,11 +1,11 @@
 #include "kraken_socket.hpp"
-#include <rapidjson/rapidjson.h>
 
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
+namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 Kraken_Socket::Kraken_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels)
@@ -14,7 +14,16 @@ Kraken_Socket::Kraken_Socket(const std::vector<std::string>& products, const std
       channels(channels),
       token(create_token())
 {
-
+    websocket::stream_base::timeout opt{
+        std::chrono::seconds(3),
+        std::chrono::seconds(2),
+        false
+        };
+    ws.set_option(opt);
+    std::cout << "connecting\n";
+    connect();
+    std::cout << "subscribing\n";
+    subscribe(true, products, channels);
 
 
 
@@ -39,17 +48,7 @@ std::string Kraken_Socket::create_token(){
     std::string signature = HmacSHA512(decoded_secret, message);
     std::string signature_b64 = base64_encode(signature);
     std::cout << "signature " << signature_b64 << "\n";
-
-    rapidjson::Document document;
-    document.SetObject();
-    rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
-    document.AddMember("nonce", rapidjson::Value(nonce), allocator);
-
-    rapidjson::StringBuffer json_buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(json_buffer);
-    document.Accept(writer);
-
-    std::cout << json_buffer.GetString() << std::endl;
+    std::cout << signature_b64.length() << "\n";
 
     ssl::stream<beast::tcp_stream> stream(ioc, ctx);
     auto const results = resolver.resolve(url, std::to_string(port));
@@ -65,23 +64,21 @@ std::string Kraken_Socket::create_token(){
 
     // Set up an HTTP request
     http::request<http::string_body> req{http::verb::post, path, 11};
-    req.set(http::field::content_type, "application/json");
-    req.set(http::field::accept, "application/json");
-    req.set(http::field::host, url);
     req.set("API-Key", key_name);
     req.set("API-Sign", signature_b64);
-    req.body() = json_buffer.GetString();
+    req.set(http::field::host, url);
+    req.set(http::field::content_type, "application/x-www-form-urlencoded");
+    req.body() = "nonce=" + nonce_str;
     req.prepare_payload();
-    std::cout << req << "\n";
 
     http::write(stream, req);
     beast::flat_buffer http_buffer;
     http::response<http::dynamic_body> res;
     http::read(stream, http_buffer, res);
 
-    // Write the message to standard out
-    std::cout << res << std::endl;
-    return "";
+    rapidjson::Document response;
+    response.Parse(beast::buffers_to_string(res.body().data()).c_str());
+    return response["result"]["token"].GetString();
 
 };
 
@@ -115,6 +112,5 @@ void Kraken_Socket::subscribe(const bool sub, const std::vector<std::string>& p,
         std::string msg = buffer.GetString();
         write(msg);
     }
-
 
 }

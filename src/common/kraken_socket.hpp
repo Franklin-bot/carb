@@ -33,6 +33,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl.hpp>
 #include <cstdlib>
+#include <rapidjson/rapidjson.h>
 
 class Kraken_Socket : public Socket {
 public:

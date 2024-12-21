@@ -5,7 +5,11 @@ rapidjson/cci.20230929
 jwt-cpp/0.7.0
 curlpp/0.8.1.cci.20240530
 fmt/11.0.2
+botan/3.6.1
 
 [generators]
 CMakeDeps
 CMakeToolchain
+
+[layout]
+cmake_layout
