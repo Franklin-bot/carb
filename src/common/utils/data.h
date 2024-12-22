@@ -36,6 +36,7 @@ struct Orderbook_Info{
     std::map<uint64_t, uint64_t> bids;
     std::map<uint64_t, uint64_t> asks;
 
+    Orderbook_Info() : timestamp(0){};
     Orderbook_Info(uint64_t timestamp) : timestamp(timestamp) {};
 
     std::string toString(std::string_view ticker) const {
@@ -49,3 +50,13 @@ struct Orderbook_Info{
         return res;
     }
 };
+
+inline std::vector<std::string> format_pair(const std::vector<std::string>& tickers, const char delimiter){
+
+    std::vector<std::string> res;
+    std::transform(tickers.begin(), tickers.end(), std::back_inserter(res), [delimiter](const std::string& ticker){
+        return ticker + delimiter + "USD";
+    });
+    return res;
+
+}

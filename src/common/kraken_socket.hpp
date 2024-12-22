@@ -43,14 +43,16 @@ public:
             std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks);
     
 private:
+
+    constexpr static uint32_t precision = 1e8;
     std::vector<std::string> products;
     std::vector<std::string> channels;
     std::string token;
 
     std::string create_token();
     void subscribe(const bool sub, const std::vector<std::string>& products, const std::vector<std::string>& channels);
-    void handleTicker(const rapidjson::Document& document, std::vector<Ticker_Info>& ticker);
-    void handleL2(const rapidjson::Document& document, std::map<uint32_t, uint32_t>& orderbook);
+    void handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers);
+    void handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks);
 
 
 };

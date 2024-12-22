@@ -20,13 +20,10 @@ Kraken_Socket::Kraken_Socket(const std::vector<std::string>& products, const std
         false
         };
     ws.set_option(opt);
-    std::cout << "connecting\n";
+    std::cout << "connecting(Kraken)\n";
     connect();
-    std::cout << "subscribing\n";
+    std::cout << "subscribing(Kraken)\n";
     subscribe(true, products, channels);
-
-
-
 
 }
 
@@ -91,17 +88,24 @@ void Kraken_Socket::subscribe(const bool sub, const std::vector<std::string>& p,
         rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
 
         rapidjson::Value typeValue(sub ? "subscribe" : "unsubscribe", allocator);
-        document.AddMember("event", typeValue, allocator);
+        document.AddMember("method", typeValue, allocator);
 
         rapidjson::Value paramsValue(rapidjson::kObjectType);
-        paramsValue.AddMember("name", rapidjson::Value(channel_id.c_str(), allocator), allocator);
+        paramsValue.AddMember("channel", rapidjson::Value(channel_id.c_str(), allocator), allocator);
         rapidjson::Value product_ids(rapidjson::kArrayType);
         for (const std::string& product : p){
             product_ids.PushBack(rapidjson::Value(product.c_str(), allocator), allocator);
         }
-        document.AddMember("subscription", paramsValue, allocator);
-        document.AddMember("pair", product_ids, allocator);
-        // document.AddMember("token", rapidjson::Value(token.c_str(), allocator), allocator);
+        paramsValue.AddMember("symbol", product_ids, allocator);
+
+        if (channel_id == "book"){
+            paramsValue.AddMember("depth", 500, allocator);
+        } else {
+            paramsValue.AddMember("event_trigger", "trades", allocator);
+        }
+
+        //paramsValue.AddMember("token", rapidjson::Value(token.c_str(), allocator), allocator);
+        document.AddMember("params", paramsValue, allocator);
 
         rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -111,16 +115,6 @@ void Kraken_Socket::subscribe(const bool sub, const std::vector<std::string>& p,
         std::string msg = buffer.GetString();
         write(msg);
     }
-
-    time_t end = time(0) + 5;
-    while (time(0) < end) {
-        ws.read(buffer);
-        std::string message = beast::buffers_to_string(buffer.data());
-        std::cout << message << "\n";
-
-        buffer.clear();
-
-    }
 }
 
 
@@ -128,16 +122,100 @@ void Kraken_Socket::listen(int seconds, std::unordered_map<std::string, std::vec
         std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks){
 
     std::cout << "Begin Listening\n";
-    int l2_count = 0;
-    int ticker_count = 0;
+    int l2_count = 0, ticker_count = 0;
     time_t end = time(0) + seconds;
 
     while (time(0) < end) {
         ws.read(buffer);
         std::string message = beast::buffers_to_string(buffer.data());
-        std::cout << message << "\n";
+        rapidjson::Document document;
+        document.Parse(message.c_str());
 
+        // heavily optimize this later, remove branching
+        if (document.HasMember("channel")){
+            std::string channel = document["channel"].GetString();
+             if (channel == "ticker"){
+                 handleTicker(document, tickers);
+                 ticker_count++;
+             } else if (channel == "book"){
+                 handleL2(document, orderbooks);
+                 l2_count++;
+             }
+        }
         buffer.clear();
 
     }
+
+    std::cout << l2_count << " l2 messages handled\n";
+    std::cout << ticker_count << " ticker messages handled\n";
+
+    int tickers_size = 0;
+    for (const auto& pair : tickers){
+        tickers_size += pair.second.size();
+    }
+    int orderbooks_size = 0;
+    for (const auto& pair : orderbooks){
+        orderbooks_size += pair.second.size();
+    }
+    std::cout << orderbooks_size << " l2 messages saved\n";
+    std::cout << tickers_size << " ticker messages saved\n";
 }
+
+
+void Kraken_Socket::handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers){
+
+    // heavily optimize later, but seems fast enough for now
+    try {
+        std::string type = document["type"].GetString();
+        const rapidjson::Value& data = document["data"][0];
+        std::string product = data["symbol"].GetString();
+        const uint64_t price = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
+        const uint64_t best_bid = static_cast<uint64_t>(data["bid"].GetDouble() * precision);
+        const uint64_t best_ask = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
+        const uint64_t best_bid_q = static_cast<uint64_t>(data["bid_qty"].GetDouble() * precision);
+        const uint64_t best_ask_q = static_cast<uint64_t>(data["ask_qty"].GetDouble() * precision);
+        tickers[product].push_back(Ticker_Info(price, 0, best_ask, best_bid, best_ask_q, best_bid_q));
+
+    } catch(std::exception &e){
+        std::cout << "Could not handle ticker message due to exception: " << e.what() << "\n";
+    }
+
+}
+
+void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks){
+    try {
+        const std::string type = document["type"].GetString();
+        const rapidjson::Value& data = document["data"][0];
+        const std::string product = data["symbol"].GetString();
+
+        Orderbook_Info entry;
+        if (type == "update"){
+            entry = orderbooks[product].back(); 
+            entry.timestamp = convertTime(data["timestamp"].GetString());
+        }
+
+        for (const auto& bid : data["bids"].GetArray()){
+            uint64_t price = static_cast<uint64_t>(bid["price"].GetDouble() * precision);
+            uint64_t q = static_cast<uint64_t>(bid["qty"].GetDouble() * precision);
+            if (q) entry.bids[price] = q;
+            else if (entry.bids.find(price) != entry.bids.end()) entry.bids.erase(price);
+
+        }
+        for (const auto& ask : data["asks"].GetArray()){
+            uint64_t price = static_cast<uint64_t>(ask["price"].GetDouble() * precision);
+            uint64_t q = static_cast<uint64_t>(ask["qty"].GetDouble() * precision);
+            if (q) entry.asks[price] = q;
+            else if (entry.asks.find(price) != entry.asks.end()) entry.asks.erase(price);
+
+        }
+        orderbooks[product].emplace_back(std::move(entry));
+
+    } catch (std::exception &e){
+        std::cout << "Could not handle l2 message due to exception: " << e.what() << "\n";
+    }
+
+}
+
+
+
+

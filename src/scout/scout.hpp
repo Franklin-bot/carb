@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 #include "../common/coinbase_socket.hpp"
+#include "../common/kraken_socket.hpp"
 #include "../common/utils/data.h"
-#include <fstream>
 
 class Scout {
 public:
@@ -16,7 +16,11 @@ private:
     int duration;
     std::vector<std::string> targets;
     Coinbase_Socket Coinbase;
+    Kraken_Socket Kraken;
+    
 
     std::unordered_map<std::string, std::vector<Ticker_Info>> Coinbase_Tickers;
     std::unordered_map<std::string, std::vector<Orderbook_Info>> Coinbase_Orderbooks;
+    std::unordered_map<std::string, std::vector<Ticker_Info>> Kraken_Tickers;
+    std::unordered_map<std::string, std::vector<Orderbook_Info>> Kraken_Orderbooks;
 };

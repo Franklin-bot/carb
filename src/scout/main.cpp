@@ -7,10 +7,10 @@
 
 int main(){
 
-    const std::vector<std::string> products = {"ETH/USD"};
+    const std::vector<std::string> products = {"BTC", "ETH"};
     // const std::vector<std::string> channels = {"ticker", "level2", "heartbeat"};
     const std::vector<std::string> channels = {"ticker", "book"};
-    std::unique_ptr<Kraken_Socket> test = std::make_unique<Kraken_Socket>(products, channels);
+    std::unique_ptr<Scout> test = std::make_unique<Scout>(10, products);
 
     return 0;
 

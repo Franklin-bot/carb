@@ -26,7 +26,6 @@
 #include <rapidjson/document.h>
 #include <boost/beast/core/tcp_stream.hpp>
 
-constexpr static uint32_t precision = 1e8;
 
 class Coinbase_Socket : public Socket {
 public:
@@ -36,6 +35,8 @@ public:
             std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks);
 
 private:
+
+    constexpr static uint32_t precision = 1e8;
     std::vector<std::string> products;
     std::vector<std::string> channels;
     std::string create_jwt();
