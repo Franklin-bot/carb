@@ -27,7 +27,6 @@ Kraken_Socket::Kraken_Socket(const std::vector<std::string>& products, const std
 
 }
 
-
 std::string Kraken_Socket::create_token(){
 
     const std::string url = "api.kraken.com";

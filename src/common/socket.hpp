@@ -12,7 +12,6 @@
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/beast/websocket/stream_base.hpp>
 #include <iostream>
-#include <botan/tls.h>
 
 class Socket{
 public:

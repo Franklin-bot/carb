@@ -13,9 +13,6 @@ find_package(jwt-cpp REQUIRED)
 find_package(curlpp REQUIRED)
 find_package(fmt REQUIRED)
 
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/lib/Botan/lib/cmake/botan-3.6.1/")
-find_package(Botan 3.6.1 REQUIRED)
-
 add_library(COMMON_lib OBJECT src/common/kraken_socket.cpp src/common/socket.cpp src/common/coinbase_socket.cpp)
 target_link_libraries(COMMON_lib Boost::boost)
 target_link_libraries(COMMON_lib ${OPENSSL_LIBRARIES})
@@ -24,7 +21,6 @@ target_link_libraries(COMMON_lib jwt-cpp::jwt-cpp)
 target_link_libraries(COMMON_lib curlpp::curlpp)
 target_link_libraries(COMMON_lib Boost::json)
 target_link_libraries(COMMON_lib fmt::fmt)
-target_link_libraries(COMMON_lib Botan::Botan)
 
 add_executable(scout_exe src/scout/main.cpp src/scout/scout.cpp)
 target_link_libraries(scout_exe PRIVATE COMMON_lib)
