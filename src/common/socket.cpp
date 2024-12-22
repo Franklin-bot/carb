@@ -12,7 +12,7 @@ Socket::Socket(const std::string_view host, const int port, const std::string_vi
         buffer(),
         ioc(),
         resolver(ioc),
-        ctx(ssl::context::tlsv12_client),
+        ctx(ssl::context::tlsv13_client),
         ws(ioc, ctx){
         }
 
@@ -21,16 +21,10 @@ void Socket::write(const std::string& msg) {
 }
 
 void Socket::connect() {
-
-        boost::asio::io_context ctx;
-        ssl::context ssl_ctx{ssl::context::tls_client};
-        auto const hostname = std::string{"wss://advanced-trade-ws.coinbase.com"};
-
         tcp::resolver resolver{ioc};
-        auto const results = resolver.resolve(host, port);
-        std::cout << "1\n";
+        auto results = resolver.resolve(host, port);
+
         auto ep = net::connect(beast::get_lowest_layer(ws), results);
-        std::cout << "2\n";
 
         if(!SSL_set_tlsext_host_name(ws.next_layer().native_handle(), host.c_str()))
             throw beast::system_error(

@@ -7,9 +7,10 @@
 
 int main(){
 
-    const std::vector<std::string> products = {"ETH-EUR", "ETH-USD"};
-    const std::vector<std::string> channels = {"ticker", "level2", "heartbeat"};
-    std::unique_ptr<Coinbase_Socket> test = std::make_unique<Coinbase_Socket>(products, channels);
+    const std::vector<std::string> products = {"ETH/USD"};
+    // const std::vector<std::string> channels = {"ticker", "level2", "heartbeat"};
+    const std::vector<std::string> channels = {"ticker", "book"};
+    std::unique_ptr<Kraken_Socket> test = std::make_unique<Kraken_Socket>(products, channels);
 
     return 0;
 

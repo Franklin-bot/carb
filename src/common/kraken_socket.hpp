@@ -39,7 +39,9 @@ class Kraken_Socket : public Socket {
 public:
 
     Kraken_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels);
-
+    void listen(int seconds, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers, 
+            std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks);
+    
 private:
     std::vector<std::string> products;
     std::vector<std::string> channels;

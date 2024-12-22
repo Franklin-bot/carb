@@ -5,7 +5,7 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 Coinbase_Socket::Coinbase_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels) : 
-    Socket("wss://advanced-trade-ws.coinbase.com", 443, "/"),
+    Socket("advanced-trade-ws.coinbase.com", 443, "/"),
     products(products),
     channels(channels)
 {

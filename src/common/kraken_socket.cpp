@@ -9,7 +9,7 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 Kraken_Socket::Kraken_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels)
-    : Socket("ws-auth.kraken.com/v2", 443, "/"),
+    : Socket("ws.kraken.com", 443, "/v2"),
       products(products),
       channels(channels),
       token(create_token())
@@ -24,6 +24,7 @@ Kraken_Socket::Kraken_Socket(const std::vector<std::string>& products, const std
     connect();
     std::cout << "subscribing\n";
     subscribe(true, products, channels);
+
 
 
 
@@ -47,8 +48,6 @@ std::string Kraken_Socket::create_token(){
     std::string decoded_secret = base64_decode(key_secret);
     std::string signature = HmacSHA512(decoded_secret, message);
     std::string signature_b64 = base64_encode(signature);
-    std::cout << "signature " << signature_b64 << "\n";
-    std::cout << signature_b64.length() << "\n";
 
     ssl::stream<beast::tcp_stream> stream(ioc, ctx);
     auto const results = resolver.resolve(url, std::to_string(port));
@@ -92,17 +91,17 @@ void Kraken_Socket::subscribe(const bool sub, const std::vector<std::string>& p,
         rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
 
         rapidjson::Value typeValue(sub ? "subscribe" : "unsubscribe", allocator);
-        document.AddMember("method", typeValue, allocator);
+        document.AddMember("event", typeValue, allocator);
 
         rapidjson::Value paramsValue(rapidjson::kObjectType);
-        paramsValue.AddMember("channel", rapidjson::Value(channel_id.c_str(), allocator), allocator);
+        paramsValue.AddMember("name", rapidjson::Value(channel_id.c_str(), allocator), allocator);
         rapidjson::Value product_ids(rapidjson::kArrayType);
         for (const std::string& product : p){
             product_ids.PushBack(rapidjson::Value(product.c_str(), allocator), allocator);
         }
-        paramsValue.AddMember("symbol", product_ids, allocator);
-        paramsValue.AddMember("token", rapidjson::Value(token.c_str(), allocator), allocator);
-        document.AddMember("params", paramsValue, allocator);
+        document.AddMember("subscription", paramsValue, allocator);
+        document.AddMember("pair", product_ids, allocator);
+        // document.AddMember("token", rapidjson::Value(token.c_str(), allocator), allocator);
 
         rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -113,4 +112,32 @@ void Kraken_Socket::subscribe(const bool sub, const std::vector<std::string>& p,
         write(msg);
     }
 
+    time_t end = time(0) + 5;
+    while (time(0) < end) {
+        ws.read(buffer);
+        std::string message = beast::buffers_to_string(buffer.data());
+        std::cout << message << "\n";
+
+        buffer.clear();
+
+    }
+}
+
+
+void Kraken_Socket::listen(int seconds, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers, 
+        std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks){
+
+    std::cout << "Begin Listening\n";
+    int l2_count = 0;
+    int ticker_count = 0;
+    time_t end = time(0) + seconds;
+
+    while (time(0) < end) {
+        ws.read(buffer);
+        std::string message = beast::buffers_to_string(buffer.data());
+        std::cout << message << "\n";
+
+        buffer.clear();
+
+    }
 }
