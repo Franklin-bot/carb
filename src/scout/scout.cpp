@@ -6,19 +6,27 @@ Scout::Scout(const int duration, const std::vector<std::string>& targets)
       targets(targets),
       Coinbase(format_pair(targets, '-'), {"ticker", "level2", "heartbeat"}),
       Kraken(format_pair(targets, '/'), {"ticker", "book"}){
+}
 
-    // Coinbase.listen(duration, Coinbase_Tickers, Coinbase_Orderbooks);
-    Kraken.listen(duration, Kraken_Tickers, Kraken_Orderbooks);
+void Scout::listenAndNotJudge(int duration){
+
+    std::thread t1([this, duration](){this->Coinbase.listen(duration, this->Coinbase_Tickers, this->Coinbase_Orderbooks);});
+    std::thread t2([this, duration](){this->Kraken.listen(duration, this->Kraken_Tickers, this->Kraken_Orderbooks);});
+
+    t1.join();
+    t2.join();
+
     toCSV(std::filesystem::current_path().parent_path()/"data");
+
 }
 
 void Scout::toCSV(std::string path){
 
     std::ofstream output;
-    std::string coinbase_ticker_path = path + "/coinbase_tickers.txt";
-    std::string coinbase_book_path = path + "/coinbase_books.txt";
-    std::string kraken_ticker_path = path + "/kraken_tickers.txt";
-    std::string kraken_book_path = path + "/kraken_books.txt";
+    std::string coinbase_ticker_path = path + "/coinbase_tickers.txt",
+                coinbase_book_path = path + "/coinbase_books.txt",
+                kraken_ticker_path = path + "/kraken_tickers.txt",
+                kraken_book_path = path + "/kraken_books.txt";
 
     output.open(coinbase_ticker_path);
     if (!output.is_open()) {

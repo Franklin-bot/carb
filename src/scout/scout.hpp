@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <thread>
 #include "../common/coinbase_socket.hpp"
 #include "../common/kraken_socket.hpp"
 #include "../common/utils/data.h"
@@ -10,6 +11,7 @@ class Scout {
 public:
 
     Scout(const int duration, const std::vector<std::string>& targets);
+    void listenAndNotJudge(int duration);
     void toCSV(std::string path);
 
 private:
