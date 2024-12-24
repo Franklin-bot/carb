@@ -118,7 +118,7 @@ void Kraken_Socket::subscribe(const bool sub, const std::vector<std::string>& p,
 
 
 void Kraken_Socket::listen(int seconds, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers, 
-        std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks){
+        std::unordered_map<std::string, std::vector<Orderbook_Update>>& orderbooks){
 
     std::cout << "Begin Listening\n";
     int l2_count = 0, ticker_count = 0;
@@ -173,7 +173,7 @@ void Kraken_Socket::handleTicker(const rapidjson::Document& document, std::unord
         const uint64_t best_ask = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
         const uint64_t best_bid_q = static_cast<uint64_t>(data["bid_qty"].GetDouble() * precision);
         const uint64_t best_ask_q = static_cast<uint64_t>(data["ask_qty"].GetDouble() * precision);
-        tickers[product].push_back(Ticker_Info(price, 0, best_ask, best_bid, best_ask_q, best_bid_q));
+        tickers[product].push_back(Ticker_Info(product, 0, price, best_ask, best_bid, best_ask_q, best_bid_q));
 
     } catch(std::exception &e){
         std::cout << "Could not handle ticker message due to exception: " << e.what() << "\n";
@@ -181,33 +181,26 @@ void Kraken_Socket::handleTicker(const rapidjson::Document& document, std::unord
 
 }
 
-void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks){
+void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Update>>& orderbooks){
     try {
         const std::string type = document["type"].GetString();
         const rapidjson::Value& data = document["data"][0];
         const std::string product = data["symbol"].GetString();
 
-        Orderbook_Info entry;
-        if (type == "update"){
-            entry = orderbooks[product].back(); 
-            entry.timestamp = convertTime(data["timestamp"].GetString());
-        }
+        uint64_t timestamp = (type == "update") ? convertTime(data["timestamp"].GetString()) : 0;
 
         for (const auto& bid : data["bids"].GetArray()){
             uint64_t price = static_cast<uint64_t>(bid["price"].GetDouble() * precision);
-            uint64_t q = static_cast<uint64_t>(bid["qty"].GetDouble() * precision);
-            if (q) entry.bids[price] = q;
-            else if (entry.bids.find(price) != entry.bids.end()) entry.bids.erase(price);
-
+            uint64_t quantity = static_cast<uint64_t>(bid["qty"].GetDouble() * precision);
+            Orderbook_Update entry = Orderbook_Update(product, timestamp, "bid", price, quantity);
+            orderbooks[product].emplace_back(std::move(entry));
         }
         for (const auto& ask : data["asks"].GetArray()){
             uint64_t price = static_cast<uint64_t>(ask["price"].GetDouble() * precision);
-            uint64_t q = static_cast<uint64_t>(ask["qty"].GetDouble() * precision);
-            if (q) entry.asks[price] = q;
-            else if (entry.asks.find(price) != entry.asks.end()) entry.asks.erase(price);
-
+            uint64_t quantity = static_cast<uint64_t>(ask["qty"].GetDouble() * precision);
+            Orderbook_Update entry = Orderbook_Update(product, timestamp, "ask", price, quantity);
+            orderbooks[product].emplace_back(std::move(entry));
         }
-        orderbooks[product].emplace_back(std::move(entry));
 
     } catch (std::exception &e){
         std::cout << "Could not handle l2 message due to exception: " << e.what() << "\n";

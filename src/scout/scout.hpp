@@ -4,8 +4,8 @@
 #include <vector>
 #include <thread>
 #include <filesystem>
-#include "../common/coinbase_socket.hpp"
-#include "../common/kraken_socket.hpp"
+#include "../common/sockets/coinbase_socket/coinbase_socket.hpp"
+#include "../common/sockets/kraken_socket/kraken_socket.hpp"
 #include "../common/utils/data.h"
 
 class Scout {
@@ -23,7 +23,7 @@ private:
     
 
     std::unordered_map<std::string, std::vector<Ticker_Info>> Coinbase_Tickers;
-    std::unordered_map<std::string, std::vector<Orderbook_Info>> Coinbase_Orderbooks;
+    std::unordered_map<std::string, std::vector<Orderbook_Update>> Coinbase_Orderbooks;
     std::unordered_map<std::string, std::vector<Ticker_Info>> Kraken_Tickers;
-    std::unordered_map<std::string, std::vector<Orderbook_Info>> Kraken_Orderbooks;
+    std::unordered_map<std::string, std::vector<Orderbook_Update>> Kraken_Orderbooks;
 };

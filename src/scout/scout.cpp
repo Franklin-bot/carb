@@ -35,7 +35,7 @@ void Scout::toCSV(std::string path){
     }
     for (const auto& pair : Coinbase_Tickers){
         for (const Ticker_Info& t : pair.second){
-            output << t.toString(pair.first);
+            output << t.toString();
         }
     }
     output.close();
@@ -46,8 +46,8 @@ void Scout::toCSV(std::string path){
         return;
     }
     for (const auto& pair: Coinbase_Orderbooks){
-        for (const Orderbook_Info& t : pair.second){
-            output << t.toString(pair.first);
+        for (const Orderbook_Update& t : pair.second){
+            output << t.toString();
         }
     }
     output.close();
@@ -60,7 +60,7 @@ void Scout::toCSV(std::string path){
     }
     for (const auto& pair : Kraken_Tickers){
         for (const Ticker_Info& t : pair.second){
-            output << t.toString(pair.first);
+            output << t.toString();
         }
     }
     output.close();
@@ -71,8 +71,8 @@ void Scout::toCSV(std::string path){
         return;
     }
     for (const auto& pair: Kraken_Orderbooks){
-        for (const Orderbook_Info& t : pair.second){
-            output << t.toString(pair.first);
+        for (const Orderbook_Update& t : pair.second){
+            output << t.toString();
         }
     }
     output.close();

@@ -13,7 +13,7 @@ find_package(jwt-cpp REQUIRED)
 find_package(curlpp REQUIRED)
 find_package(fmt REQUIRED)
 
-add_library(COMMON_lib OBJECT src/common/kraken_socket.cpp src/common/socket.cpp src/common/coinbase_socket.cpp)
+add_library(COMMON_lib OBJECT src/common/sockets/kraken_socket/kraken_socket.cpp src/common/socket.cpp src/common/sockets/coinbase_socket/coinbase_socket.cpp)
 target_link_libraries(COMMON_lib Boost::boost)
 target_link_libraries(COMMON_lib ${OPENSSL_LIBRARIES})
 target_link_libraries(COMMON_lib rapidjson)

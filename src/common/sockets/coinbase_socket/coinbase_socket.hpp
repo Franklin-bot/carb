@@ -32,7 +32,7 @@ public:
 
     Coinbase_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels);
     void listen(int seconds, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers, 
-            std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks);
+            std::unordered_map<std::string, std::vector<Orderbook_Update>>& orderbooks);
 
 private:
 
@@ -43,5 +43,5 @@ private:
 
     void subscribe(const bool sub, const std::vector<std::string>& products, const std::vector<std::string>& channels);
     void handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers);
-    void handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Info>>& orderbooks);
+    void handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Update>>& orderbooks);
 };

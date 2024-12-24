@@ -6,24 +6,26 @@
 #include <string>
 
 struct Ticker_Info{
-    uint64_t price;
+    std::string ticker;
     uint64_t timestamp;
+    uint64_t price;
     uint64_t best_ask;
     uint64_t best_bid;
     uint64_t best_ask_q;
     uint64_t best_bid_q;
 
 
-    Ticker_Info(uint64_t price, uint64_t timestamp, uint64_t best_ask, uint64_t best_bid, uint64_t best_ask_q, uint64_t best_bid_q)
-      : price(price), 
+    Ticker_Info(std::string ticker, uint64_t timestamp, uint64_t price, uint64_t best_ask, uint64_t best_bid, uint64_t best_ask_q, uint64_t best_bid_q)
+      : ticker(ticker),
         timestamp(timestamp),
+        price(price), 
         best_ask(best_ask),
         best_bid(best_bid),
         best_ask_q(best_ask_q),
         best_bid_q(best_bid_q)
     {};
 
-    std::string toString(std::string_view ticker) const {
+    std::string toString() const {
         return fmt::format("{},{},{},{},{},{},{}\n",
             ticker, timestamp, price, best_ask, best_bid, best_ask_q, best_bid_q);
     }
@@ -31,23 +33,24 @@ struct Ticker_Info{
 
 };
 
-struct Orderbook_Info{
+
+struct Orderbook_Update{
+    std::string ticker;
     uint64_t timestamp;
-    std::map<uint64_t, uint64_t> bids;
-    std::map<uint64_t, uint64_t> asks;
+    std::string side;
+    uint64_t new_price;
+    uint64_t new_quantity;
 
-    Orderbook_Info() : timestamp(0){};
-    Orderbook_Info(uint64_t timestamp) : timestamp(timestamp) {};
+    Orderbook_Update() : timestamp(0){};
+    Orderbook_Update(std::string ticker ,uint64_t timestamp, std::string side, uint64_t price, uint64_t quantity)
+        : ticker(ticker),
+        timestamp(timestamp),
+        side(side),
+        new_price(price),
+        new_quantity(quantity) {};
 
-    std::string toString(std::string_view ticker) const {
-        std::string res;
-        for (const auto& [price, quantity] : bids) {
-            res += fmt::format("{},bid,{},{},{}\n", ticker, timestamp, price, quantity);
-        }
-        for (const auto& [price, quantity] : asks) {
-            res += fmt::format("{},ask,{},{},{}\n", ticker,timestamp, price, quantity);
-        }
-        return res;
+    std::string toString() const {
+        return fmt::format("{},{},{},{},{}\n", ticker, timestamp, side, new_price, new_quantity);
     }
 };
 
