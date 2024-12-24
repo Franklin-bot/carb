@@ -187,10 +187,9 @@ void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered
         const rapidjson::Value& data = document["data"][0];
         const std::string product = data["symbol"].GetString();
 
-        Orderbook_Info entry(0);
+        Orderbook_Info entry;
         if (type == "update"){
-            entry.bids = orderbooks[product].back().bids; 
-            entry.asks = orderbooks[product].back().asks; 
+            entry = orderbooks[product].back(); 
             entry.timestamp = convertTime(data["timestamp"].GetString());
         }
 
@@ -208,7 +207,7 @@ void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered
             else if (entry.asks.find(price) != entry.asks.end()) entry.asks.erase(price);
 
         }
-        orderbooks[product].emplace_back(entry);
+        orderbooks[product].emplace_back(std::move(entry));
 
     } catch (std::exception &e){
         std::cout << "Could not handle l2 message due to exception: " << e.what() << "\n";

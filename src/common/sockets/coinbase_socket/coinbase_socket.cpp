@@ -152,15 +152,13 @@ void Coinbase_Socket::handleL2(const rapidjson::Document& document, std::unorder
         const rapidjson::Value& event = document["events"][0];
         const std::string type = event["type"].GetString();
         const std::string product = event["product_id"].GetString();
-        Orderbook_Info entry(timestamp);
-        if (type != "snapshot" && !orderbooks[product].empty()){
-            entry.bids = orderbooks[product].back().bids;
-            entry.asks = orderbooks[product].back().asks;
-        }
+        Orderbook_Info entry = (type == "snapshot")
+            ? Orderbook_Info(timestamp)
+            : orderbooks[product].back(); 
         for (const auto& update : event["updates"].GetArray()){
             uint64_t price = static_cast<uint64_t>(std::stod(update["price_level"].GetString()) * precision);
             uint64_t q = static_cast<uint64_t>(std::stod(update["new_quantity"].GetString()) * precision);
-            auto& target_map = (update["side"] == "bid") ? entry.bids : entry.asks;
+            auto& target_map = (update["side"] == "bids") ? entry.bids : entry.asks;
 
             if (q) target_map[price] = q;
             else if (target_map.find(price) != target_map.end()) target_map.erase(price);
