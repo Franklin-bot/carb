@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <filesystem>
 #include "../common/coinbase_socket.hpp"
 #include "../common/kraken_socket.hpp"
 #include "../common/utils/data.h"
