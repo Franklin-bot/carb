@@ -7,7 +7,7 @@ namespace net = boost::asio;            // from <boost/asio.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
                                         //
-Socket::Socket(const std::string_view host, const int port, const std::string_view path)
+Socket::Socket(std::string_view host, int port, std::string_view path)
       : host(host), port(std::to_string(port)), path(path), 
         buffer(),
         ioc(),

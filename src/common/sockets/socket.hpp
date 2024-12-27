@@ -16,7 +16,7 @@
 class Socket{
 public:
 
-    Socket(const std::string_view host, const int port, const std::string_view path);
+    Socket(std::string_view host, int port, std::string_view path);
     ~Socket();
     void write(const std::string& msg);
     void connect();

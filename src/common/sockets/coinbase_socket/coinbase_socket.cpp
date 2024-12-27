@@ -87,7 +87,7 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
     std::cout << "Begin Listening\n";
     int l2_count = 0;
     int ticker_count = 0;
-    time_t end = time(0) + seconds;
+    const time_t end = time(0) + seconds;
 
     while (time(0) < end) {
         ws.read(buffer);
@@ -120,8 +120,8 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
     for (const auto& pair : orderbooks){
         orderbooks_size += pair.second.size();
     }
-    std::cout << orderbooks_size << " l2 messages saved\n";
-    std::cout << tickers_size << " ticker messages saved\n";
+    std::cout << orderbooks_size << " l2 updates saved\n";
+    std::cout << tickers_size << " ticker updates saved\n";
 }
 
 
@@ -131,7 +131,7 @@ void Coinbase_Socket::handleTicker(const rapidjson::Document& document, std::uno
     try {
         uint64_t timestamp = convertTime(document["timestamp"].GetString()); 
         const rapidjson::Value& data = document["events"][0]["tickers"][0];
-        std::string product = data["product_id"].GetString();
+        const std::string& product = data["product_id"].GetString();
         const uint64_t price = static_cast<uint64_t>(std::stod(data["price"].GetString()) * precision);
         const uint64_t best_bid = static_cast<uint64_t>(std::stod(data["best_bid"].GetString()) * precision);
         const uint64_t best_ask = static_cast<uint64_t>(std::stod(data["best_ask"].GetString()) * precision);
@@ -151,11 +151,11 @@ void Coinbase_Socket::handleL2(const rapidjson::Document& document, std::unorder
         uint64_t timestamp = convertTime(document["timestamp"].GetString()); 
         const rapidjson::Value& event = document["events"][0];
         const std::string type = event["type"].GetString();
-        const std::string product = event["product_id"].GetString();
+        const std::string& product = event["product_id"].GetString();
         for (const auto& update : event["updates"].GetArray()){
             uint64_t price = static_cast<uint64_t>(std::stod(update["price_level"].GetString()) * precision);
             uint64_t quantity = static_cast<uint64_t>(std::stod(update["new_quantity"].GetString()) * precision);
-            std::string side = update["side"].GetString();
+            const std::string& side = update["side"].GetString();
             Orderbook_Update entry = Orderbook_Update(product, timestamp, side, price, quantity);
             orderbooks[product].emplace_back(std::move(entry));
         }

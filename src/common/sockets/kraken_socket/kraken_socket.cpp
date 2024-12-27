@@ -156,8 +156,8 @@ void Kraken_Socket::listen(int seconds, std::unordered_map<std::string, std::vec
     for (const auto& pair : orderbooks){
         orderbooks_size += pair.second.size();
     }
-    std::cout << orderbooks_size << " l2 messages saved\n";
-    std::cout << tickers_size << " ticker messages saved\n";
+    std::cout << orderbooks_size << " l2 updates saved\n";
+    std::cout << tickers_size << " ticker updates saved\n";
 }
 
 
@@ -167,7 +167,7 @@ void Kraken_Socket::handleTicker(const rapidjson::Document& document, std::unord
     try {
         std::string type = document["type"].GetString();
         const rapidjson::Value& data = document["data"][0];
-        std::string product = data["symbol"].GetString();
+        const std::string& product = data["symbol"].GetString();
         const uint64_t price = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
         const uint64_t best_bid = static_cast<uint64_t>(data["bid"].GetDouble() * precision);
         const uint64_t best_ask = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
@@ -185,7 +185,7 @@ void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered
     try {
         const std::string type = document["type"].GetString();
         const rapidjson::Value& data = document["data"][0];
-        const std::string product = data["symbol"].GetString();
+        const std::string& product = data["symbol"].GetString();
 
         uint64_t timestamp = (type == "update") ? convertTime(data["timestamp"].GetString()) : 0;
 
