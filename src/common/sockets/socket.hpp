@@ -6,12 +6,13 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <string_view>
-#include <memory>
-#include <vector>
 #include <unistd.h>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/beast/websocket/stream_base.hpp>
+
 #include <iostream>
+#include <memory>
+#include <vector>
 
 class Socket{
 public:

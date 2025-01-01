@@ -13,8 +13,7 @@ Socket::Socket(std::string_view host, int port, std::string_view path)
         ioc(),
         resolver(ioc),
         ctx(ssl::context::tlsv13_client),
-        ws(ioc, ctx){
-        }
+        ws(ioc, ctx){}
 
 void Socket::write(const std::string& msg) { 
     ws.write(net::buffer(msg));

@@ -5,9 +5,7 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 Coinbase_Socket::Coinbase_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels) : 
-    Socket("advanced-trade-ws.coinbase.com", 443, "/"),
-    products(products),
-    channels(channels)
+    Socket("advanced-trade-ws.coinbase.com", 443, "/")
 {
     websocket::stream_base::timeout opt{
         std::chrono::seconds(3),
@@ -22,7 +20,7 @@ Coinbase_Socket::Coinbase_Socket(const std::vector<std::string>& products, const
 }
 
 
-void Coinbase_Socket::subscribe(const bool sub, const std::vector<std::string>& p, const std::vector<std::string>& c) {
+void Coinbase_Socket::subscribe(bool sub, const std::vector<std::string>& p, const std::vector<std::string>& c) {
 
     for (const std::string& channel_id : c){
 
@@ -59,7 +57,7 @@ void Coinbase_Socket::subscribe(const bool sub, const std::vector<std::string>& 
 }
 
 
-std::string Coinbase_Socket::create_jwt(){
+std::string Coinbase_Socket::create_jwt() const {
 
     std::string key_name{std::getenv("COINBASE_API_TOKEN")};
     std::string key_secret{std::getenv("COINBASE_PRIVATE_TOKEN")};
@@ -125,39 +123,38 @@ void Coinbase_Socket::listen(int seconds, std::unordered_map<std::string, std::v
 }
 
 
-void Coinbase_Socket::handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers){
+void Coinbase_Socket::handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers) const {
 
     // heavily optimize later, but seems fast enough for now
     try {
         uint64_t timestamp = convertTime(document["timestamp"].GetString()); 
         const rapidjson::Value& data = document["events"][0]["tickers"][0];
         const std::string& product = data["product_id"].GetString();
-        const uint64_t price = static_cast<uint64_t>(std::stod(data["price"].GetString()) * precision);
-        const uint64_t best_bid = static_cast<uint64_t>(std::stod(data["best_bid"].GetString()) * precision);
-        const uint64_t best_ask = static_cast<uint64_t>(std::stod(data["best_ask"].GetString()) * precision);
-        const uint64_t best_bid_q = static_cast<uint64_t>(std::stod(data["best_bid_quantity"].GetString()) * precision);
-        const uint64_t best_ask_q = static_cast<uint64_t>(std::stod(data["best_ask_quantity"].GetString()) * precision);
-        tickers[product].push_back(Ticker_Info(product, timestamp, price, best_ask, best_bid, best_ask_q, best_bid_q));
+        uint64_t price = static_cast<uint64_t>(std::stod(data["price"].GetString()) * precision);
+        uint64_t best_bid = static_cast<uint64_t>(std::stod(data["best_bid"].GetString()) * precision);
+        uint64_t best_ask = static_cast<uint64_t>(std::stod(data["best_ask"].GetString()) * precision);
+        uint64_t best_bid_q = static_cast<uint64_t>(std::stod(data["best_bid_quantity"].GetString()) * precision);
+        uint64_t best_ask_q = static_cast<uint64_t>(std::stod(data["best_ask_quantity"].GetString()) * precision);
+        tickers[product].emplace_back(product, timestamp, price, best_ask, best_bid, best_ask_q, best_bid_q);
 
     } catch(std::exception &e){
         std::cout << "Could not handle ticker message due to exception: " << e.what() << "\n";
     }
 }
 
-void Coinbase_Socket::handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Update>>& orderbooks){
+void Coinbase_Socket::handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Update>>& orderbooks) const {
 
     // heavily optimize later, but seems fast enough for now
     try {
         uint64_t timestamp = convertTime(document["timestamp"].GetString()); 
         const rapidjson::Value& event = document["events"][0];
-        const std::string type = event["type"].GetString();
+        std::string type = event["type"].GetString();
         const std::string& product = event["product_id"].GetString();
         for (const auto& update : event["updates"].GetArray()){
             uint64_t price = static_cast<uint64_t>(std::stod(update["price_level"].GetString()) * precision);
             uint64_t quantity = static_cast<uint64_t>(std::stod(update["new_quantity"].GetString()) * precision);
             const std::string& side = update["side"].GetString();
-            Orderbook_Update entry = Orderbook_Update(product, timestamp, side, price, quantity);
-            orderbooks[product].emplace_back(std::move(entry));
+            orderbooks[product].emplace_back(product, timestamp, side, price, quantity);
         }
 
     } catch (std::exception &e){

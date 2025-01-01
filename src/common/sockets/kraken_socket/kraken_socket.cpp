@@ -10,8 +10,6 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 Kraken_Socket::Kraken_Socket(const std::vector<std::string>& products, const std::vector<std::string>& channels)
     : Socket("ws.kraken.com", 443, "/v2"),
-      products(products),
-      channels(channels),
       token(create_token())
 {
     websocket::stream_base::timeout opt{
@@ -77,7 +75,7 @@ std::string Kraken_Socket::create_token(){
 
 };
 
-void Kraken_Socket::subscribe(const bool sub, const std::vector<std::string>& p, const std::vector<std::string>& c){
+void Kraken_Socket::subscribe(bool sub, const std::vector<std::string>& p, const std::vector<std::string>& c){
 
     for (const std::string& channel_id : c){
 
@@ -161,19 +159,19 @@ void Kraken_Socket::listen(int seconds, std::unordered_map<std::string, std::vec
 }
 
 
-void Kraken_Socket::handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers){
+void Kraken_Socket::handleTicker(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Ticker_Info>>& tickers) const {
 
     // heavily optimize later, but seems fast enough for now
     try {
         std::string type = document["type"].GetString();
         const rapidjson::Value& data = document["data"][0];
         const std::string& product = data["symbol"].GetString();
-        const uint64_t price = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
-        const uint64_t best_bid = static_cast<uint64_t>(data["bid"].GetDouble() * precision);
-        const uint64_t best_ask = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
-        const uint64_t best_bid_q = static_cast<uint64_t>(data["bid_qty"].GetDouble() * precision);
-        const uint64_t best_ask_q = static_cast<uint64_t>(data["ask_qty"].GetDouble() * precision);
-        tickers[product].push_back(Ticker_Info(product, 0, price, best_ask, best_bid, best_ask_q, best_bid_q));
+        uint64_t price = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
+        uint64_t best_bid = static_cast<uint64_t>(data["bid"].GetDouble() * precision);
+        uint64_t best_ask = static_cast<uint64_t>(data["ask"].GetDouble() * precision);
+        uint64_t best_bid_q = static_cast<uint64_t>(data["bid_qty"].GetDouble() * precision);
+        uint64_t best_ask_q = static_cast<uint64_t>(data["ask_qty"].GetDouble() * precision);
+        tickers[product].emplace_back(product, 0, price, best_ask, best_bid, best_ask_q, best_bid_q);
 
     } catch(std::exception &e){
         std::cout << "Could not handle ticker message due to exception: " << e.what() << "\n";
@@ -181,9 +179,9 @@ void Kraken_Socket::handleTicker(const rapidjson::Document& document, std::unord
 
 }
 
-void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Update>>& orderbooks){
+void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered_map<std::string, std::vector<Orderbook_Update>>& orderbooks) const {
     try {
-        const std::string type = document["type"].GetString();
+        const std::string& type = document["type"].GetString();
         const rapidjson::Value& data = document["data"][0];
         const std::string& product = data["symbol"].GetString();
 
@@ -192,14 +190,12 @@ void Kraken_Socket::handleL2(const rapidjson::Document& document, std::unordered
         for (const auto& bid : data["bids"].GetArray()){
             uint64_t price = static_cast<uint64_t>(bid["price"].GetDouble() * precision);
             uint64_t quantity = static_cast<uint64_t>(bid["qty"].GetDouble() * precision);
-            Orderbook_Update entry = Orderbook_Update(product, timestamp, "bid", price, quantity);
-            orderbooks[product].emplace_back(std::move(entry));
+            orderbooks[product].emplace_back(product, timestamp, "bid", price, quantity);
         }
         for (const auto& ask : data["asks"].GetArray()){
             uint64_t price = static_cast<uint64_t>(ask["price"].GetDouble() * precision);
             uint64_t quantity = static_cast<uint64_t>(ask["qty"].GetDouble() * precision);
-            Orderbook_Update entry = Orderbook_Update(product, timestamp, "ask", price, quantity);
-            orderbooks[product].emplace_back(std::move(entry));
+            orderbooks[product].emplace_back(product, timestamp, "ask", price, quantity);
         }
 
     } catch (std::exception &e){
