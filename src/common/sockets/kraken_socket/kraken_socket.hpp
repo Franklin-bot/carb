@@ -45,7 +45,7 @@ public:
     
 private:
 
-    constexpr static uint32_t precision = 1e8;
+    static constexpr uint32_t precision = 1e8;
     std::string token;
 
     std::string create_token();
